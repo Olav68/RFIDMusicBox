@@ -168,7 +168,7 @@ def disconnect_wifi():
 def get_connected_ssid():
     try:
         result = subprocess.check_output(
-            ["nmcli", "-t", "-f active,ssid", "dev", "wifi"],
+            ["nmcli", "-t", "-f", "active,ssid", "dev", "wifi"],
             text=True
         )
         for line in result.strip().split("\n"):
