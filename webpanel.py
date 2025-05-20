@@ -4,6 +4,7 @@ import subprocess
 import socket
 from datetime import datetime
 from utils import append_log, load_log, load_songs, save_songs
+#Olav 09:49
 
 app = Flask(__name__)
 STORAGE_DIR = "/home/magic/RFIDMusicBox/mp3"
