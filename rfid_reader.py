@@ -4,7 +4,8 @@ import os
 import subprocess
 
 SONGS_FILE = "/home/magic/RFIDMusicBox/songs.json"
-MUSIC_DIR = "/home/magic/RFIDMusicBox/music"
+#MUSIC_DIR = "/home/magic/RFIDMusicBox/music"
+STORAGE_DIR = "/home/magic/RFIDMusicBox/mp3"
 LAST_RFID_FILE = "/home/magic/RFIDMusicBox/.last_rfid_seen.txt"
 
 def load_songs():
