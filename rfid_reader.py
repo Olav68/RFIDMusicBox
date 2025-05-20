@@ -1,36 +1,37 @@
-import serial
-import os
-import subprocess
 import json
-from utils import append_log, load_songs, save_songs
+import os
+import time
+from utils import append_log
 
-STORAGE_DIR = "/home/magic/RFIDMusicBox/mp3"
-PORT = "/dev/ttyUSB0"  # Eller ttyACM0, juster hvis nødvendig
+SONGS_FILE = "/home/magic/RFIDMusicBox/songs.json"
 
-ser = serial.Serial(PORT, 9600)
+def read_rfid():
+    try:
+        with open("/dev/ttyUSB0", "r") as reader:
+            while True:
+                tag = reader.readline().strip()
+                if tag:
+                    log_and_store_rfid(tag)
+    except Exception as e:
+        append_log(f"❌ RFID-leserfeil: {e}")
 
-while True:
-    rfid = ser.readline().decode().strip()
-    if not rfid:
-        continue
+def log_and_store_rfid(rfid):
+    append_log(f"📡 Lest RFID: {rfid}")  # <-- Her logger vi at en brikke er lest
+    try:
+        if os.path.exists(SONGS_FILE):
+            with open(SONGS_FILE, "r") as f:
+                songs = json.load(f)
+        else:
+            songs = {}
 
-    append_log(f"📡 RFID skannet: {rfid}")
+        songs["last_read_rfid"] = rfid
 
-    songs = load_songs()
-    songs["last_read_rfid"] = rfid  # For webpanelet
+        with open(SONGS_FILE, "w") as f:
+            json.dump(songs, f, indent=2)
 
-    for sid, info in songs.items():
-        if sid == "last_read_rfid":
-            continue
-        if isinstance(info, dict) and info.get("rfid") == rfid:
-            filepath = os.path.join(STORAGE_DIR, info["filename"])
-            if os.path.exists(filepath):
-                append_log(f"▶ Spiller sang for RFID: {info.get('title', sid)}")
-                subprocess.Popen(["mpv", "--no-video", filepath])
-            else:
-                append_log(f"❌ Fil ikke funnet for {sid}")
-            break
-    else:
-        append_log("⚠️ RFID ikke koblet til noen sang")
+    except Exception as e:
+        append_log(f"❌ Feil ved skriving til songs.json: {e}")
 
-    save_songs(songs)
+if __name__ == "__main__":
+    append_log("▶ Starter RFID-leser")
+    read_rfid()
