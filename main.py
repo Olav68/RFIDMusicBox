@@ -23,10 +23,19 @@ def find_device():
 
 def play_song(filepath):
     try:
-        subprocess.Popen([
-            "env", f"PULSE_SINK={BLUETOOTH_SINK}",
-            "mpv", "--no-video", filepath
-        ])
+        subprocess.call(["pkill", "-f", "mpv"])  # Stopp forrige avspilling
+
+        result = subprocess.run(["pactl", "get-sink-state", BLUETOOTH_SINK],
+                                capture_output=True, text=True)
+        if "RUNNING" in result.stdout or "IDLE" in result.stdout or "SUSPENDED" in result.stdout:
+            append_log("🔊 Spiller via Bluetooth")
+            subprocess.Popen([
+                "env", f"PULSE_SINK={BLUETOOTH_SINK}",
+                "mpv", "--no-video", "--force-window=no", filepath
+            ])
+        else:
+            append_log("🔈 Bluetooth ikke tilkoblet – spiller via standard utgang")
+            subprocess.Popen(["mpv", "--no-video", "--force-window=no", filepath])
     except Exception as e:
         append_log(f"❌ Kunne ikke spille lyd: {e}")
 
@@ -62,7 +71,7 @@ if __name__ == "__main__":
 
                     for sid, song in songs.items():
                         if isinstance(song, dict) and song.get("rfid") == rfid:
-                            append_log(f"▶ Spiller: {song.get('title', sid)}")
+                            append_log(f"▶ Spiller: {song.get('title', sid)} ({filepath})")
                             filepath = os.path.join(STORAGE_DIR, song["filename"])
                             play_song(filepath)
                             break

@@ -58,6 +58,12 @@ updateRFIDStatus();
     <button class="button-new" type="submit">Legg til sang</button>
 </form>
 
+<form action="/simulate_rfid" method="post" style="margin-top:1em;">
+    <label for="rfid">Test RFID:</label>
+    <input type="text" name="rfid" required>
+    <button type="submit">🧪 Simuler RFID-skudd</button>
+</form>
+
 <p><strong>IP-adresse:</strong> <code>{{ ip }}</code> og <code>http://magicmusicbox.local</code></p>
 <p><a href="/static/Olas_magiske_spilleboks_bruksanvisning.pdf" target="_blank">📘 Vis bruksanvisning</a></p>
 <p><a href="/help">ℹ️ Hjelp</a></p>
@@ -65,6 +71,12 @@ updateRFIDStatus();
 
 <form method="post" action="/stop" style="margin-top: 1em;">
   <button type="submit">⏹️ Stopp avspilling</button>
+</form>
+
+<form action="/set_volume" method="post" style="margin-top: 1em;">
+    <label for="volume">Volum (%):</label>
+    <input type="number" name="volume" min="0" max="150" step="5" value="80">
+    <button type="submit">🎚 Sett volum</button>
 </form>
 
 <table>

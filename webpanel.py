@@ -140,6 +140,27 @@ def stop_song():
     append_log("⏹️ Stoppet avspilling")
     return redirect("/")
 
+@app.route("/set_volume", methods=["POST"])
+def set_volume():
+    level = request.form["volume"]
+    try:
+        subprocess.run(["pactl", "set-sink-volume", "@DEFAULT_SINK@", f"{level}%"], check=True)
+        append_log(f"🔊 Volum satt til {level}%")
+    except subprocess.CalledProcessError:
+        append_log("❌ Klarte ikke endre volum")
+    return redirect("/")
+
+
+#RFID
+@app.route("/simulate_rfid", methods=["POST"])
+def simulate_rfid():
+    test_rfid = request.form["rfid"].strip()
+    songs = load_songs()
+    songs["last_read_rfid"] = test_rfid
+    save_songs(songs)
+    append_log(f"🧪 Simulert RFID-skudd: {test_rfid}")
+    return redirect("/")
+
 @app.route("/link_rfid", methods=["POST"])
 def link_rfid():
     song_id = request.form["song_id"]
