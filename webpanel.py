@@ -161,7 +161,7 @@ def wifi_settings():
         return f"❌ Feil ved henting av nettverk: {e}"
     
     # Hent aktivt nettverk
-    @app.route("/wifi")
+@app.route("/wifi")
 def wifi_settings():
     ssid = get_connected_ssid()
     networks = scan_wifi_networks()
