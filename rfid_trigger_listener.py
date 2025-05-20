@@ -1,15 +1,12 @@
 import time
 import json
 import os
-import subprocess
+
+from utils import load_songs, append_log, play_song
 
 SONGS_FILE = "/home/magic/RFIDMusicBox/songs.json"
 STORAGE_DIR = "/home/magic/RFIDMusicBox/mp3"
 LAST_RFID_FILE = "/home/magic/RFIDMusicBox/.last_rfid_seen.txt"
-
-def load_songs():
-    with open(SONGS_FILE, "r") as f:
-        return json.load(f)
 
 def get_last_seen():
     if os.path.exists(LAST_RFID_FILE):
@@ -21,31 +18,29 @@ def set_last_seen(rfid):
     with open(LAST_RFID_FILE, "w") as f:
         f.write(rfid)
 
-def play_song(filepath):
-    subprocess.call(["pkill", "-f", "mpv"])
-    subprocess.Popen(["mpv", "--no-video", "--force-window=no", filepath])
-#ikke sikker på denne
 print("🔁 RFID trigger-lytter kjører...")
 while True:
     try:
         data = load_songs()
         rfid = data.get("last_read_rfid", "").strip()
+
         if not rfid or rfid == get_last_seen():
             time.sleep(1)
             continue
 
-        print(f"📻 Trigger fra RFID: {rfid}")
+        append_log(f"📻 Trigger fra RFID: {rfid}")
         set_last_seen(rfid)
 
         for sid, song in data.items():
             if isinstance(song, dict) and song.get("rfid") == rfid:
                 filepath = os.path.join(STORAGE_DIR, song["filename"])
                 if os.path.exists(filepath):
-                    print(f"▶ Spiller: {song['title']}")
+                    append_log(f"▶ Spiller: {song.get('title', filepath)}")
                     play_song(filepath)
                 else:
-                    print(f"❌ Fil mangler: {filepath}")
+                    append_log(f"❌ Fil mangler: {filepath}")
                 break
+
     except Exception as e:
-        print(f"💥 Feil: {e}")
+        append_log(f"💥 Feil i trigger-lytter: {e}")
         time.sleep(2)
