@@ -168,14 +168,19 @@ def disconnect_wifi():
 def get_connected_ssid():
     try:
         result = subprocess.check_output(
-            ["nmcli", "-t", "-f", "NAME,DEVICE", "connection", "show", "--active"]
-        ).decode()
+            ["nmcli", "-t", "-f NAME,DEVICE", "connection", "show", "--active"],
+            text=True
+        )
         for line in result.strip().split("\n"):
             if ":wlan0" in line:
-                return line.split(":")[0]
-        return None
-    except Exception:
-        return None
+                ssid = line.split(":")[0]
+                # Fjern "netplan-wlan0-@"-prefix hvis det finnes
+                if ssid.startswith("netplan-wlan0-@"):
+                    return ssid.replace("netplan-wlan0-@", "")
+                return ssid
+    except Exception as e:
+        append_log(f"Feil ved henting av tilkoblet SSID: {e}")
+    return None
 
 def scan_wifi_networks():
     try:
