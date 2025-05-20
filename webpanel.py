@@ -40,10 +40,6 @@ def status():
     }
     return jsonify(status)
 
-@app.route("/")
-def index():
-    return render_template("index.html")
-
 def download_song(song_id, url):
     filename = f"song_{song_id}.mp3"
     full_path = os.path.join(STORAGE_DIR, filename)
