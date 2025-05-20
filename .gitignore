@@ -1,0 +1,23 @@
+# Python-kompilerte filer
+__pycache__/
+*.py[cod]
+
+# Loggfiler
+activity_log.json
+activity_log.json.*
+
+# Midlertidige JSON-konfigurasjoner og data
+songs.json
+config.json
+
+# MP3-filer (de lastes ned automatisk)
+*.mp3
+
+# Eventuelle backup-filer fra redigering
+*.save
+*.bak
+*~
+
+# Systemfiler og metadata
+.DS_Store
+Thumbs.db
