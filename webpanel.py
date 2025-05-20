@@ -4,9 +4,11 @@ import json
 import subprocess
 import socket
 from datetime import datetime
+from bluetooth import bluetooth_bp
 from utils import append_log, load_log, load_songs, save_songs
 
 app = Flask(__name__)
+app.register_blueprint(bluetooth_bp)
 STORAGE_DIR = "/home/magic/RFIDMusicBox/mp3"
 
 def is_valid_url(url):
@@ -141,6 +143,8 @@ def run_update():
     except subprocess.CalledProcessError as e:
         return f"❌ Feil under oppdatering:\n{e.stdout}\n{e.stderr}"
 
+#Wifi instillinger
+
 @app.route("/wifi")
 def wifi_settings():
     connected_ssid = get_connected_ssid()
@@ -193,6 +197,41 @@ def scan_wifi_networks():
     except Exception as e:
         append_log(f"Feil ved skanning av nettverk: {e}")
     return []
+
+# Bluetooth instillinger
+
+import bluetooth  # Krever `pybluez`
+
+@app.route("/bluetooth")
+def bluetooth_page():
+    paired_devices = get_paired_devices()
+    discovered_devices = discover_devices()
+    return render_template("bluetooth.html", paired=paired_devices, found=discovered_devices)
+
+def get_paired_devices():
+    try:
+        output = subprocess.check_output(["bluetoothctl", "paired-devices"], text=True)
+        return [
+            {"mac": line.split(" ")[1], "name": " ".join(line.split(" ")[2:])}
+            for line in output.strip().split("\n") if line
+        ]
+    except Exception as e:
+        append_log(f"⚠️ Feil ved henting av parrede enheter: {e}")
+        return []
+
+def discover_devices():
+    try:
+        output = subprocess.check_output(["bluetoothctl", "scan", "on"], timeout=5)
+        output = subprocess.check_output(["bluetoothctl", "devices"], text=True)
+        return [
+            {"mac": line.split(" ")[1], "name": " ".join(line.split(" ")[2:])}
+            for line in output.strip().split("\n") if line
+        ]
+    except Exception as e:
+        append_log(f"⚠️ Feil ved Bluetooth-skanning: {e}")
+        return []
+
+
 
 if __name__ == "__main__":
     import sys

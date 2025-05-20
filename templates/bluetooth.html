@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <title>Bluetooth</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .device { margin-bottom: 10px; padding: 10px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h1>Bluetooth-innstillinger</h1>
+
+  <h2>🔗 Parrede enheter</h2>
+  {% if paired %}
+    {% for d in paired %}
+      <div class="device">
+        <strong>{{ d.name }}</strong> – {{ d.mac }}
+        <!-- Her kan vi senere legge til "Fjern paring"-knapp -->
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>Ingen enheter paret.</p>
+  {% endif %}
+
+  <h2>📡 Oppdagede enheter</h2>
+  {% if found %}
+    {% for d in found %}
+      <div class="device">
+        <strong>{{ d.name }}</strong> – {{ d.mac }}
+        <!-- Her kan vi senere legge til "Par"-knapp -->
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>Ingen enheter funnet.</p>
+  {% endif %}
+
+  <a href="/system">← Tilbake til systeminnstillinger</a>
+</body>
+</html>
