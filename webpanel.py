@@ -136,7 +136,7 @@ def run_update():
     except subprocess.CalledProcessError as e:
         return f"❌ Feil under oppdatering:\n{e.stdout}\n{e.stderr}"
     
-    @app.route("/wifi")
+@app.route("/wifi")
 def wifi_settings():
     try:
         # Hent aktive nettverk
@@ -159,7 +159,7 @@ def wifi_settings():
     except Exception as e:
         return f"❌ Feil ved henting av nettverk: {e}"
     
-    @app.route("/connect_wifi", methods=["POST"])
+@app.route("/connect_wifi", methods=["POST"])
 def connect_wifi():
     ssid = request.form["ssid"]
     password = request.form["password"]
