@@ -2,38 +2,26 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8">
-  <title>Bluetooth</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; }
-    .device { margin-bottom: 10px; padding: 10px; border: 1px solid #ccc; }
-  </style>
+  <title>Bluetooth-enheter</title>
 </head>
 <body>
-  <h1>Bluetooth-innstillinger</h1>
+  <h1>Bluetooth-enheter</h1>
+  <form action="/bluetooth/scan" method="get">
+    <button type="submit">🔍 Søk etter nye enheter</button>
+  </form>
 
-  <h2>🔗 Parrede enheter</h2>
-  {% if paired %}
-    {% for d in paired %}
-      <div class="device">
-        <strong>{{ d.name }}</strong> – {{ d.mac }}
-        <!-- Her kan vi senere legge til "Fjern paring"-knapp -->
-      </div>
+  <h2>Parede enheter</h2>
+  <ul>
+    {% for d in devices %}
+      <li>
+        {{ d.name }} ({{ d.addr }})
+        <form method="post" action="/bluetooth/remove" style="display:inline">
+          <input type="hidden" name="device" value="{{ d.addr }}">
+          <button type="submit">❌ Fjern</button>
+        </form>
+      </li>
     {% endfor %}
-  {% else %}
-    <p>Ingen enheter paret.</p>
-  {% endif %}
-
-  <h2>📡 Oppdagede enheter</h2>
-  {% if found %}
-    {% for d in found %}
-      <div class="device">
-        <strong>{{ d.name }}</strong> – {{ d.mac }}
-        <!-- Her kan vi senere legge til "Par"-knapp -->
-      </div>
-    {% endfor %}
-  {% else %}
-    <p>Ingen enheter funnet.</p>
-  {% endif %}
+  </ul>
 
   <a href="/system">← Tilbake til systeminnstillinger</a>
 </body>

@@ -3,54 +3,49 @@ import subprocess
 
 bluetooth_bp = Blueprint("bluetooth", __name__, template_folder="templates")
 
+@bluetooth_bp.route("/bluetooth")
+def bluetooth_page():
+    paired_devices = get_paired_devices()
+    return render_template("bluetooth.html", devices=paired_devices)
+
+@bluetooth_bp.route("/bluetooth/scan")
+def bluetooth_scan():
+    try:
+        output = subprocess.check_output(["bluetoothctl", "scan", "on"], timeout=5)
+        return "🔍 Søker etter enheter..."
+    except Exception as e:
+        return f"❌ Feil ved scanning: {e}"
+
+@bluetooth_bp.route("/bluetooth/pair", methods=["POST"])
+def bluetooth_pair():
+    addr = request.form["device"]
+    try:
+        subprocess.run(["bluetoothctl", "pair", addr], check=True)
+        subprocess.run(["bluetoothctl", "trust", addr], check=True)
+        subprocess.run(["bluetoothctl", "connect", addr], check=True)
+        return redirect("/bluetooth")
+    except Exception as e:
+        return f"❌ Klarte ikke pare enhet {addr}: {e}"
+
+@bluetooth_bp.route("/bluetooth/remove", methods=["POST"])
+def bluetooth_remove():
+    addr = request.form["device"]
+    try:
+        subprocess.run(["bluetoothctl", "remove", addr], check=True)
+        return redirect("/bluetooth")
+    except Exception as e:
+        return f"❌ Klarte ikke fjerne enhet {addr}: {e}"
 
 def get_paired_devices():
     try:
         output = subprocess.check_output(["bluetoothctl", "paired-devices"], text=True)
         devices = []
         for line in output.strip().split("\n"):
-            parts = line.split(" ", 2)
-            if len(parts) == 3:
-                devices.append({"mac": parts[1], "name": parts[2]})
+            if line.startswith("Device"):
+                parts = line.split(" ", 2)
+                if len(parts) == 3:
+                    addr, name = parts[1], parts[2]
+                    devices.append({"addr": addr, "name": name})
         return devices
     except Exception as e:
-        return []
-
-
-def scan_devices():
-    try:
-        subprocess.run(["bluetoothctl", "scan", "on"], timeout=3)
-        output = subprocess.check_output(["bluetoothctl", "devices"], text=True)
-        devices = []
-        for line in output.strip().split("\n"):
-            parts = line.split(" ", 2)
-            if len(parts) == 3:
-                devices.append({"mac": parts[1], "name": parts[2]})
-        return devices
-    except Exception as e:
-        return []
-
-
-@bluetooth_bp.route("/bluetooth")
-def show_bluetooth():
-    paired = get_paired_devices()
-    discovered = scan_devices()
-    return render_template("bluetooth.html", paired=paired, discovered=discovered)
-
-
-@bluetooth_bp.route("/bluetooth/connect", methods=["POST"])
-def connect_bluetooth():
-    mac = request.form.get("mac")
-    if mac:
-        subprocess.run(["bluetoothctl", "pair", mac])
-        subprocess.run(["bluetoothctl", "connect", mac])
-        subprocess.run(["bluetoothctl", "trust", mac])
-    return redirect("/bluetooth")
-
-
-@bluetooth_bp.route("/bluetooth/remove", methods=["POST"])
-def remove_bluetooth():
-    mac = request.form.get("mac")
-    if mac:
-        subprocess.run(["bluetoothctl", "remove", mac])
-    return redirect("/bluetooth")
+        return [{"addr": "N/A", "name": f"Feil: {e}"}]
