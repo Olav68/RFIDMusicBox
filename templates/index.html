@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>Ola's magiske spilleboks</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+        th, td { border: 1px solid #ccc; padding: 0.5em; text-align: left; }
+        .ready { color: green; font-weight: bold; }
+        .downloading { color: orange; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .button-delete { color: white; background: red; border: none; padding: 0.4em 0.8em; cursor: pointer; }
+        .button-new { background: lightgray; border: none; padding: 0.4em 0.8em; cursor: pointer; }
+        .button-play { background: green; color: white; border: none; padding: 0.4em 0.8em; cursor: pointer; }
+        .timeline { margin-top: 2em; background: #f9f9f9; padding: 1em; border-radius: 5px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Ola's magiske spilleboks</h1>
+
+    <form action="/add_url" method="post">
+        <label for="url">YouTube eller Spotify URL:</label><br>
+        <input type="text" id="url" name="url" required style="width: 60%">
+        <button type="submit">Legg til sang</button>
+    </form>
+
+    <p><strong>IP-adresse:</strong> <code>{{ ip }}</code> og <code>magicmusicbox.local</code></p>
+    <p><a href="/static/Olas_magiske_spilleboks_bruksanvisning.pdf" target="_blank">📘 Vis bruksanvisning</a></p>
+    <p><a href="/help">ℹ️ Hjelp</a></p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Tittel</th>
+                <th>URL</th>
+                <th>Status</th>
+                <th>RFID</th>
+                <th>Handlinger</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for sid, song in songs.items() if sid != 'last_read_rfid' %}
+            <tr>
+                <td>{{ song.title if 'title' in song else 'Ukjent' }}</td>
+                <td><a href="{{ song.url }}" target="_blank">Link</a></td>
+                <td class="{{ song.status }}">{{ '✅ Klar' if song.status == 'ready' else '⏳ Henter' if song.status == 'downloading' else '❌ Feil' }}</td>
+                <td>
+                    {% if 'rfid' in song %}
+                        {{ song.rfid }}
+                        <form action="/unlink_rfid" method="post" style="display:inline">
+                            <input type="hidden" name="song_id" value="{{ sid }}">
+                            <button class="button-delete" type="submit">Slett</button>
+                        </form>
+                    {% else %}
+                        <form action="/link_rfid" method="post" style="display:inline">
+                            <input type="hidden" name="song_id" value="{{ sid }}">
+                            <button class="button-new" type="submit">Ny</button>
+                        </form>
+                    {% endif %}
+                </td>
+                <td>
+                    <form action="/play" method="post" style="display:inline">
+                        <input type="hidden" name="song_id" value="{{ sid }}">
+                        <button class="button-play" type="submit">▶ Spill</button>
+                    </form>
+                    <form action="/delete_song" method="post" style="display:inline">
+                        <input type="hidden" name="song_id" value="{{ sid }}">
+                        <button class="button-delete" type="submit">🗑 Slett</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% if log %}
+    <div class="timeline">
+        <h3>📜 Logg</h3>
+        <ul>
+        {% for entry in log[-10:] %}
+            <li>{{ entry }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+</body>
+</html>
