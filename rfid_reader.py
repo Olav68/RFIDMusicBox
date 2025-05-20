@@ -19,10 +19,10 @@ def find_song_by_rfid(data, rfid_code):
     return None
 
 def stop_audio():
-    subprocess.call(["pkill", "mpg123"])
+    subprocess.call(["pkill", "mpv"])
 
 def play_audio(filepath):
-    subprocess.Popen(["mpg123", filepath])
+    subprocess.Popen(["mpv", "--no-video", filepath])
 
 def beep_error():
     # Dobbel pip
