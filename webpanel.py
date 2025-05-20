@@ -124,6 +124,18 @@ def unlink_rfid():
 def help():
     return render_template("help.html")
 
+@app.route("/system")
+def system_settings():
+    return render_template("system.html")
+
+@app.route("/run_update")
+def run_update():
+    try:
+        result = subprocess.run(["/home/magic/oppdater.sh"], capture_output=True, text=True, check=True)
+        return result.stdout + result.stderr
+    except subprocess.CalledProcessError as e:
+        return f"❌ Feil under oppdatering:\n{e.stdout}\n{e.stderr}"
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) == 3 and sys.argv[1] == "--download":

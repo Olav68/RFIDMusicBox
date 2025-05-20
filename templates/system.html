@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <title>Systeminnstillinger</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    button { margin: 10px 0; display: block; padding: 10px; }
+    #log { margin-top: 20px; white-space: pre-wrap; border: 1px solid #ccc; padding: 10px; height: 200px; overflow-y: scroll; background: #f9f9f9; }
+  </style>
+</head>
+<body>
+  <h1>Systeminnstillinger</h1>
+
+  <button onclick="runUpdate()">🔄 Oppdater programmet</button>
+  <button onclick="loadWiFi()">📶 Koble til WiFi</button>
+  <button onclick="loadBluetooth()">🔊 Bluetooth</button>
+
+  <div id="log">Logg vises her...</div>
+
+  <script>
+    function runUpdate() {
+      fetch('/run_update')
+        .then(response => response.text())
+        .then(output => document.getElementById('log').textContent = output)
+        .catch(error => document.getElementById('log').textContent = 'Feil: ' + error);
+    }
+
+    function loadWiFi() {
+      window.location.href = '/wifi';
+    }
+
+    function loadBluetooth() {
+      window.location.href = '/bluetooth';
+    }
+  </script>
+</body>
+</html>
