@@ -4,7 +4,7 @@ import os
 import subprocess
 
 SONGS_FILE = "/home/magic/RFIDMusicBox/songs.json"
-#MUSIC_DIR = "/home/magic/RFIDMusicBox/music"
+#MUSIC_DIR = "/home/magic/RFIDMusicBox/music" Ikke i bruk
 STORAGE_DIR = "/home/magic/RFIDMusicBox/mp3"
 LAST_RFID_FILE = "/home/magic/RFIDMusicBox/.last_rfid_seen.txt"
 
