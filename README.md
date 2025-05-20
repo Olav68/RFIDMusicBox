@@ -1,128 +1,51 @@
-1. Hvordan registrere en ny sang
+# Ola's Magiske Spilleboks 🎶✨
 
-Koble deg til boksen via nettleser:
+Et Raspberry Pi-basert musikksystem for barn, som spiller av sanger når man skanner et RFID-kort. Sanger kan kobles til kort via et enkelt webgrensesnitt. Alt lagres lokalt og kan brukes offline.
 
-Åpne nettleser på telefon, nettbrett eller PC
+## 📦 Funksjoner
 
-Gå til: http://magicmusicbox.local eller http://[IP-adresse]
+- 🎵 Skann et RFID-kort → spill av tilkoblet MP3-fil
+- 🌐 Webgrensesnitt for administrasjon av sanger og kort
+- ✅ Automatisk nedlasting av MP3 fra YouTube/Spotify
+- 💾 Støtte for lagring på SD-kort eller lokal disk
+- 🔊 Volumkontroll og avspillingsstyring
+- 🪪 Koble eller fjern RFID-koder enkelt
+- 📜 Logger aktivitet og systemstatus
 
-Finn en sang-URL:
+## 🖥️ Systemkrav
 
-Spotify:
+- Raspberry Pi (anbefalt Pi 3 eller nyere)
+- Python 3.10+
+- RFID-leser (USB-emulerende, f.eks. 13.56 MHz USB)
+- Høyttaler (Bluetooth eller jack)
 
-Åpne Spotify-appen
+## 🚀 Installering
 
-Finn sangen du vil bruke
+```bash
+sudo apt update && sudo apt install python3-pip git unzip -y
+git clone https://github.com/Olav68/RFIDMusicBox.git
+cd RFIDMusicBox
+pip install -r requirements.txt
 
-Trykk "..." (mer), velg Del → Kopier lenke
+🔧 Oppsett av systemtjenester
+Systemet starter automatisk ved oppstart via systemd:
 
-YouTube:
+sudo cp rfid_webpanel.service /etc/systemd/system/
+sudo cp rfid_listener.service /etc/systemd/system/
+sudo systemctl daemon-reexec
+sudo systemctl enable rfid_webpanel
+sudo systemctl enable rfid_listener
+sudo systemctl start rfid_webpanel
+sudo systemctl start rfid_listener
 
-Åpne YouTube
-
-Finn ønsket video
-
-Trykk "Del" → Kopier kobling
-
-Lim inn sang-URL i webpanelet:
-
-Eksempel:
-
-YouTube: https://youtu.be/abc123
-
-Spotify: https://open.spotify.com/track/...
-
-Trykk "Lagre"
-
-Sangen legges til i listen med gul hake: "Henter..."
-
-Etter noen sekunder blir haken grønn: "Klar!"
-
-Valgfritt:
-
-Trykk "Spill" for å teste
-
-Trykk "Slett" for å fjerne
-
-2. Hvordan registrere en ny RFID-kode
-
-Skann RFID-brikken på boksen
-
-Et RFID-kort/skilt holdes inntil leseren
-
-Du hører evt. bekreftelseslyd
-
-Gå til webpanelet og finn sangen du vil koble til
-
-Trykk på "Ny" i RFID-kolonnen
-
-RFID-koden som nettopp ble skannet kobles til sangen
-
-Når samme brikke skannes igjen:
-
-Sangen spilles automatisk
-
-3. Hvordan koble boksen til nytt WiFi-nettverk
-
-Koble til boksen via kabel (eller eksisterende WiFi)
-
-Åpne terminal via SSH:
-
-ssh magic@magicmusicbox.local
-
-Kør dette for å konfigurere nytt nettverk:
-
-nmcli dev wifi list                # Se tilgjengelige nettverk
-nmcli dev wifi connect "NETTVERKSNAVN" password "PASSORD"
-
-Sjekk tilkobling:
-
-ip a | grep wlan
-
-Du kan nå bruke ny IP-adresse eller .local-navnet igjen
-
-4. Hvordan koble til ny Bluetooth-høyttaler
-
-Start Bluetooth-verktøyet:
-
-bluetoothctl
-
-Skru på søk og agent:
-
-power on
-agent on
-default-agent
-scan on
-
-Finn høyttaleren:
-
-Noter MAC-adressen, f.eks. B2:F9:2D:EE:95:9D
-
-Par, støtt og koble til:
-
-pair B2:F9:2D:EE:95:9D
-trust B2:F9:2D:EE:95:9D
-connect B2:F9:2D:EE:95:9D
-
-Bekreft at lyden spilles via Bluetooth:
-
-pactl info | grep Sink
-
-Skal vise bluez_sink... som aktiv kanal
-
-Høyttaleren kobles automatisk til neste gang ved oppstart
-
-5. Visning i webpanelet og foreldreversjon
-
-Denne hjelpen vises som egen knapp i webpanelet under navnet "Bruksanvisning".
-
-Du kan skrive den ut fra nettleseren direkte (Ctrl+P eller Del → Skriv ut)
-
-Du kan også laste ned PDF-versjonen:
-
-Last ned PDF
-
-For videre hjelp, kontakt systemansvarlig eller se prosjektets GitHub-repo.
-
-# RFIDMusicBox
-MusicBox med RFID styring
+Filstruktur
+RFIDMusicBox/
+├── main.py                 # Lydavspiller (lytter på RFID)
+├── webpanel.py            # Flask-basert kontrollpanel
+├── utils.py               # Felles verktøy (logging, lagring)
+├── templates/             # HTML-filer
+├── static/                # PDF-manual, evt. CSS/filer
+├── mp3/                   # Lokalt lagrede MP3-filer
+├── songs.json             # Koblede sanger og RFID-koder
+├── config.json            # Innstillinger (lagringssti mm.)
+└── activity_log.json      # Logg over aktivitet
