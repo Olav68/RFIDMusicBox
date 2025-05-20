@@ -71,10 +71,28 @@ def add_url():
 def play_song():
     song_id = request.form["song_id"]
     songs = load_songs()
-    if song_id in songs:
-        filepath = os.path.join(STORAGE_DIR, songs[song_id]["filename"])
+
+    if song_id not in songs:
+        append_log(f"❌ Ugyldig song_id: {song_id}")
+        return redirect("/")
+
+    filename = songs[song_id].get("filename")
+    if not filename:
+        append_log(f"❌ Ingen fil knyttet til song_id: {song_id}")
+        return redirect("/")
+
+    filepath = os.path.join(STORAGE_DIR, filename)
+
+    if not os.path.exists(filepath):
+        append_log(f"❌ Filen finnes ikke: {filepath}")
+        return redirect("/")
+
+    try:
         subprocess.Popen(["mpv", "--no-video", filepath])
-        append_log(f"▶ Spiller: {songs[song_id].get('title', song_id)}")
+        append_log(f"▶ Spiller: {songs[song_id].get('title', filename)}")
+    except Exception as e:
+        append_log(f"❌ Feil ved avspilling: {e}")
+
     return redirect("/")
 
 @app.route("/delete_song", methods=["POST"])
