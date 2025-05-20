@@ -18,9 +18,11 @@
     </style>
 </head>
 <body>
+
 <div id="rfid-status" style="font-size: 1.2em; margin-bottom: 1em;">
     🔄 Laster status...
 </div>
+<div id="status-timestamp" style="font-size: 0.9em; color: #666;"></div>
 
 <script>
 function updateRFIDStatus() {
@@ -28,13 +30,16 @@ function updateRFIDStatus() {
         .then(res => res.json())
         .then(data => {
             const div = document.getElementById("rfid-status");
+            const timestamp = document.getElementById("status-timestamp");
             if (!data.rfid) {
                 div.innerHTML = "📭 Ingen RFID skannet ennå.";
+                timestamp.innerHTML = "";
                 return;
             }
             const color = data.status === "ready" ? "🟢" : "🔴";
             const text = data.status === "ready" ? "klar til avspilling" : "ikke koblet eller mangler fil";
             div.innerHTML = `${color} Siste RFID: <b>${data.rfid}</b> (${text})`;
+            timestamp.innerHTML = "⏱️ Oppdatert: " + new Date().toLocaleTimeString();
         })
         .catch(() => {
             document.getElementById("rfid-status").innerText = "❌ Klarte ikke hente status.";
@@ -45,78 +50,80 @@ setInterval(updateRFIDStatus, 3000);
 updateRFIDStatus();
 </script>
 
-    <h1>Ola's magiske spilleboks</h1>
+<h1>Ola's magiske spilleboks</h1>
 
-    <form action="/add_url" method="post">
-        <label for="url">YouTube eller Spotify URL:</label><br>
-        <input type="text" id="url" name="url" required style="width: 60%">
-        <button type="submit">Legg til sang</button>
-    </form>
+<form action="/add_url" method="post">
+    <label for="url">YouTube eller Spotify URL:</label><br>
+    <input type="text" id="url" name="url" required style="width: 60%">
+    <button class="button-new" type="submit">Legg til sang</button>
+</form>
 
-    <p><strong>IP-adresse:</strong> <code>{{ ip }}</code> og <code>http://magicmusicbox.local</code></p>
-    <p><a href="/static/Olas_magiske_spilleboks_bruksanvisning.pdf" target="_blank">📘 Vis bruksanvisning</a></p>
-    <p><a href="/help">ℹ️ Hjelp</a></p>
-    <a href="/system" class="btn">Systeminnstillinger</a>
+<p><strong>IP-adresse:</strong> <code>{{ ip }}</code> og <code>http://magicmusicbox.local</code></p>
+<p><a href="/static/Olas_magiske_spilleboks_bruksanvisning.pdf" target="_blank">📘 Vis bruksanvisning</a></p>
+<p><a href="/help">ℹ️ Hjelp</a></p>
+<a href="/system" class="btn">Systeminnstillinger</a>
 
-<form method="post" action="/stop">
+<form method="post" action="/stop" style="margin-top: 1em;">
   <button type="submit">⏹️ Stopp avspilling</button>
 </form>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Tittel</th>
-                <th>URL</th>
-                <th>Status</th>
-                <th>RFID</th>
-                <th>Handlinger</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for sid, song in songs.items() if sid != 'last_read_rfid' %}
-            <tr>
-                <td>{{ song.title if 'title' in song else 'Ukjent' }}</td>
-                <td><a href="{{ song.url }}" target="_blank">Link</a></td>
-                <td class="{{ song.status }}">{{ '✅ Klar' if song.status == 'ready' else '⏳ Henter' if song.status == 'downloading' else '❌ Feil' }}</td>
-                <td>
-                    {% if 'rfid' in song %}
-                        {{ song.rfid }}
-                        <form action="/unlink_rfid" method="post" style="display:inline">
-                            <input type="hidden" name="song_id" value="{{ sid }}">
-                            <button class="button-delete" type="submit">Slett</button>
-                        </form>
-                    {% else %}
-                        <form action="/link_rfid" method="post" style="display:inline">
-                            <input type="hidden" name="song_id" value="{{ sid }}">
-                            <button class="button-new" type="submit">Ny</button>
-                        </form>
-                    {% endif %}
-                </td>
-                <td>
-                    <form action="/play" method="post" style="display:inline">
+<table>
+    <thead>
+        <tr>
+            <th>Tittel</th>
+            <th>URL</th>
+            <th>Status</th>
+            <th>RFID</th>
+            <th>Handlinger</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for sid, song in songs.items() if sid != 'last_read_rfid' %}
+        <tr>
+            <td>{{ song.title if 'title' in song else 'Ukjent' }}</td>
+            <td><a href="{{ song.url }}" target="_blank">Link</a></td>
+            <td class="{{ song.status }}">
+                {{ '✅ Klar' if song.status == 'ready' else '⏳ Henter' if song.status == 'downloading' else '❌ Feil' }}
+            </td>
+            <td>
+                {% if 'rfid' in song %}
+                    {{ song.rfid }}
+                    <form action="/unlink_rfid" method="post" style="display:inline">
                         <input type="hidden" name="song_id" value="{{ sid }}">
-                        <button class="button-play" type="submit">▶ Spill</button>
+                        <button class="button-delete" type="submit">Slett</button>
                     </form>
-                    <form action="/delete_song" method="post" style="display:inline">
+                {% else %}
+                    <form action="/link_rfid" method="post" style="display:inline">
                         <input type="hidden" name="song_id" value="{{ sid }}">
-                        <button class="button-delete" type="submit">🗑 Slett</button>
+                        <button class="button-new" type="submit">Ny</button>
                     </form>
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+                {% endif %}
+            </td>
+            <td>
+                <form action="/play" method="post" style="display:inline">
+                    <input type="hidden" name="song_id" value="{{ sid }}">
+                    <button class="button-play" type="submit">▶ Spill</button>
+                </form>
+                <form action="/delete_song" method="post" style="display:inline">
+                    <input type="hidden" name="song_id" value="{{ sid }}">
+                    <button class="button-delete" type="submit">🗑 Slett</button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
 
-    {% if log %}
-    <div class="timeline">
-        <h3>📜 Logg</h3>
-        <ul>
-        {% for entry in log[-10:] %}
-            <li>{{ entry }}</li>
-        {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
+{% if log %}
+<div class="timeline">
+    <h3>📜 Logg</h3>
+    <ul>
+    {% for entry in log[-10:] %}
+        <li>{{ entry }}</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
 
 </body>
 </html>
