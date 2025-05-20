@@ -1,0 +1,6 @@
+Flask==2.3.3
+gunicorn==21.2.0
+pyyaml==6.0.1
+requests==2.31.0
+pynput==1.7.6            # hvis du lytter på tastatur som simulert RFID-leser
+pulsectl==23.5.2         # hvis du bruker PulseAudio for lydstyring
