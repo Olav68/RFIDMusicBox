@@ -1,37 +1,77 @@
 import json
-import os
 import time
-from utils import append_log
+import os
+import subprocess
 
 SONGS_FILE = "/home/magic/RFIDMusicBox/songs.json"
+MUSIC_DIR = "/home/magic/RFIDMusicBox/music"
+LAST_RFID_FILE = "/home/magic/RFIDMusicBox/.last_rfid_seen.txt"
 
-def read_rfid():
-    try:
-        with open("/dev/ttyUSB0", "r") as reader:
-            while True:
-                tag = reader.readline().strip()
-                if tag:
-                    log_and_store_rfid(tag)
-    except Exception as e:
-        append_log(f"❌ RFID-leserfeil: {e}")
+def load_songs():
+    with open(SONGS_FILE, "r") as f:
+        return json.load(f)
 
-def log_and_store_rfid(rfid):
-    append_log(f"📡 Lest RFID: {rfid}")  # <-- Her logger vi at en brikke er lest
-    try:
-        if os.path.exists(SONGS_FILE):
-            with open(SONGS_FILE, "r") as f:
-                songs = json.load(f)
-        else:
-            songs = {}
+def find_song_by_rfid(data, rfid_code):
+    for key, val in data.items():
+        if isinstance(val, dict) and val.get("rfid") == rfid_code:
+            return val
+    return None
 
-        songs["last_read_rfid"] = rfid
+def stop_audio():
+    subprocess.call(["pkill", "mpg123"])
 
-        with open(SONGS_FILE, "w") as f:
-            json.dump(songs, f, indent=2)
+def play_audio(filepath):
+    subprocess.Popen(["mpg123", filepath])
 
-    except Exception as e:
-        append_log(f"❌ Feil ved skriving til songs.json: {e}")
+def beep_error():
+    # Dobbel pip
+    subprocess.call(["speaker-test", "-t", "sine", "-f", "1000", "-l", "1", "-P", "1", "-p", "100"])
+    time.sleep(0.1)
+    subprocess.call(["speaker-test", "-t", "sine", "-f", "1000", "-l", "1", "-P", "1", "-p", "100"])
+
+def get_last_seen_rfid():
+    if os.path.exists(LAST_RFID_FILE):
+        with open(LAST_RFID_FILE, "r") as f:
+            return f.read().strip()
+    return None
+
+def set_last_seen_rfid(rfid_code):
+    with open(LAST_RFID_FILE, "w") as f:
+        f.write(rfid_code)
+
+def main():
+    print("🎧 RFID-lytter er startet...")
+    while True:
+        try:
+            data = load_songs()
+            current_rfid = data.get("last_read_rfid", "").strip()
+            if not current_rfid:
+                time.sleep(1)
+                continue
+
+            last_seen = get_last_seen_rfid()
+            if current_rfid != last_seen:
+                print(f"📻 Ny RFID skannet: {current_rfid}")
+                set_last_seen_rfid(current_rfid)
+
+                song = find_song_by_rfid(data, current_rfid)
+                if song:
+                    filepath = os.path.join(MUSIC_DIR, song["filename"])
+                    if os.path.exists(filepath):
+                        print(f"▶ Spiller: {song['title']}")
+                        stop_audio()
+                        play_audio(filepath)
+                    else:
+                        print(f"❗ MP3-fil ikke funnet: {filepath}")
+                        beep_error()
+                else:
+                    print("🚫 Ingen sang knyttet til denne RFID-koden.")
+                    beep_error()
+            time.sleep(1)
+
+        except Exception as e:
+            print(f"💥 Feil oppstod: {e}")
+            time.sleep(2)
 
 if __name__ == "__main__":
-    append_log("▶ Starter RFID-leser")
-    read_rfid()
+    main()
