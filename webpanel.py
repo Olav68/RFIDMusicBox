@@ -36,7 +36,7 @@ def status():
     match = find_song_by_rfid(data, rfid)
     status = {
         "rfid": rfid,
-        "status": "ready" if match and os.path.exists(os.path.join(MUSIC_DIR, match["filename"])) else "missing"
+        "status": "ready" if match and os.path.exists(os.path.join(STORAGE_DIR, match["filename"])) else "missing"
     }
     return jsonify(status)
 
