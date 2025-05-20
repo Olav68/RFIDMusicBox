@@ -24,7 +24,7 @@ def set_last_seen(rfid):
 def play_song(filepath):
     subprocess.call(["pkill", "-f", "mpv"])
     subprocess.Popen(["mpv", "--no-video", "--force-window=no", filepath])
-
+#ikke sikker på denne
 print("🔁 RFID trigger-lytter kjører...")
 while True:
     try:
