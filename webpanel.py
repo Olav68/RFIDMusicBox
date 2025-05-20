@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 import os
 import json
 import subprocess
@@ -10,11 +10,39 @@ from utils import append_log, load_log, load_songs, save_songs
 app = Flask(__name__)
 app.register_blueprint(bluetooth_bp)
 STORAGE_DIR = "/home/magic/RFIDMusicBox/mp3"
+SONGS_FILE = "/home/magic/RFIDMusicBox/songs.json"
+MUSIC_DIR = "/home/magic/RFIDMusicBox/music"
 
 def is_valid_url(url):
     return url.startswith("http") and (
         "youtube.com" in url or "spotify.com" in url or "youtu.be" in url
     )
+def load_songs():
+    if os.path.exists(SONGS_FILE):
+        with open(SONGS_FILE, "r") as f:
+            return json.load(f)
+    return {}
+
+def find_song_by_rfid(data, rfid_code):
+    for key, val in data.items():
+        if isinstance(val, dict) and val.get("rfid") == rfid_code:
+            return val
+    return None
+
+@app.route("/status")
+def status():
+    data = load_songs()
+    rfid = data.get("last_read_rfid", "")
+    match = find_song_by_rfid(data, rfid)
+    status = {
+        "rfid": rfid,
+        "status": "ready" if match and os.path.exists(os.path.join(MUSIC_DIR, match["filename"])) else "missing"
+    }
+    return jsonify(status)
+
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 def download_song(song_id, url):
     filename = f"song_{song_id}.mp3"

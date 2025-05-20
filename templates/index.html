@@ -18,6 +18,33 @@
     </style>
 </head>
 <body>
+<div id="rfid-status" style="font-size: 1.2em; margin-bottom: 1em;">
+    🔄 Laster status...
+</div>
+
+<script>
+function updateRFIDStatus() {
+    fetch('/status')
+        .then(res => res.json())
+        .then(data => {
+            const div = document.getElementById("rfid-status");
+            if (!data.rfid) {
+                div.innerHTML = "📭 Ingen RFID skannet ennå.";
+                return;
+            }
+            const color = data.status === "ready" ? "🟢" : "🔴";
+            const text = data.status === "ready" ? "klar til avspilling" : "ikke koblet eller mangler fil";
+            div.innerHTML = `${color} Siste RFID: <b>${data.rfid}</b> (${text})`;
+        })
+        .catch(() => {
+            document.getElementById("rfid-status").innerText = "❌ Klarte ikke hente status.";
+        });
+}
+
+setInterval(updateRFIDStatus, 3000);
+updateRFIDStatus();
+</script>
+
     <h1>Ola's magiske spilleboks</h1>
 
     <form action="/add_url" method="post">
@@ -30,7 +57,7 @@
     <p><a href="/static/Olas_magiske_spilleboks_bruksanvisning.pdf" target="_blank">📘 Vis bruksanvisning</a></p>
     <p><a href="/help">ℹ️ Hjelp</a></p>
     <a href="/system" class="btn">Systeminnstillinger</a>
-    
+
 <form method="post" action="/stop">
   <button type="submit">⏹️ Stopp avspilling</button>
 </form>
