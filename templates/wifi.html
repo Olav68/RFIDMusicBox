@@ -11,20 +11,17 @@
   </style>
 </head>
 <body>
-  <h1>WiFi-innstillinger</h1>
-  {% if ssid %}
-  <p>🔌 Tilkoblet til: {{ ssid }}</p>
+
+<h1>WiFi-innstillinger</h1>
+
+{% if connected %}
+  <p>🔌 Tilkoblet til: <strong>{{ connected }}</strong></p>
+  <form method="post" action="/disconnect_wifi">
+    <button type="submit">❌ Koble fra</button>
+  </form>
 {% else %}
-  <p>🔌 Ikke tilkoblet til noe nettverk</p>
+  <p>❌ Ikke tilkoblet til noe nettverk</p>
 {% endif %}
-  {% if connected %}
-    <p>🔌 Tilkoblet til: <strong>{{ connected }}</strong></p>
-    <form method="post" action="/disconnect_wifi">
-      <button type="submit">❌ Koble fra</button>
-    </form>
-  {% else %}
-    <p>❌ Ikke tilkoblet til noe nettverk</p>
-  {% endif %}
 
   <h2>Tilgjengelige nettverk</h2>
   {% for net in networks %}
