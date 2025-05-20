@@ -135,6 +135,47 @@ def run_update():
         return result.stdout + result.stderr
     except subprocess.CalledProcessError as e:
         return f"❌ Feil under oppdatering:\n{e.stdout}\n{e.stderr}"
+    
+    @app.route("/wifi")
+def wifi_settings():
+    try:
+        # Hent aktive nettverk
+        scan_output = subprocess.check_output(["nmcli", "-t", "-f", "SSID,SIGNAL", "dev", "wifi"], text=True)
+        networks = [
+            {"ssid": line.split(":")[0], "signal": line.split(":")[1]}
+            for line in scan_output.strip().split("\n")
+            if line and line.split(":")[0]
+        ]
+
+        # Hent aktiv tilkobling
+        current = subprocess.check_output(["nmcli", "-t", "-f", "NAME,DEVICE", "connection", "show", "--active"], text=True)
+        current_ssid = None
+        for line in current.strip().split("\n"):
+            if "wlan0" in line:
+                current_ssid = line.split(":")[0]
+                break
+
+        return render_template("wifi.html", networks=networks, connected=current_ssid)
+    except Exception as e:
+        return f"❌ Feil ved henting av nettverk: {e}"
+    
+    @app.route("/connect_wifi", methods=["POST"])
+def connect_wifi():
+    ssid = request.form["ssid"]
+    password = request.form["password"]
+    try:
+        subprocess.run(["nmcli", "dev", "wifi", "connect", ssid, "password", password], check=True)
+        return redirect("/wifi")
+    except subprocess.CalledProcessError as e:
+        return f"❌ Klarte ikke koble til {ssid}: {e}"
+
+@app.route("/disconnect_wifi", methods=["POST"])
+def disconnect_wifi():
+    try:
+        subprocess.run(["nmcli", "connection", "down", "wlan0"], check=True)
+        return redirect("/wifi")
+    except subprocess.CalledProcessError as e:
+        return f"❌ Klarte ikke koble fra: {e}"
 
 if __name__ == "__main__":
     import sys
