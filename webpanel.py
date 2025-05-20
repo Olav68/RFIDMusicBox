@@ -142,12 +142,10 @@ def run_update():
         return f"❌ Feil under oppdatering:\n{e.stdout}\n{e.stderr}"
 
 @app.route("/wifi")
-def wifi():
+def wifi_settings():
     connected_ssid = get_connected_ssid()
-    if connected_ssid and connected_ssid.startswith("netplan-wlan0-@"):
-        connected_ssid = connected_ssid.replace("netplan-wlan0-@", "")
     networks = scan_wifi_networks()
-    return render_template("wifi.html", connected_ssid=connected_ssid, networks=networks)
+    return render_template("wifi.html", connected=connected_ssid, networks=networks)
 
 @app.route("/connect_wifi", methods=["POST"])
 def connect_wifi():
