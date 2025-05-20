@@ -110,6 +110,12 @@ def delete_song():
         save_songs(songs)
     return redirect("/")
 
+@app.route("/stop", methods=["POST"])
+def stop_song():
+    subprocess.run(["pkill", "mpv"])
+    append_log("⏹️ Stoppet avspilling")
+    return redirect("/")
+
 @app.route("/link_rfid", methods=["POST"])
 def link_rfid():
     song_id = request.form["song_id"]
