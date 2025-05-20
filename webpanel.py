@@ -117,4 +117,84 @@ def play_song_route():
 
     return redirect("/")
 
-# ... resten av ruter og funksjoner for delete, stop, set_volume osv. forblir uendret ...
+@app.route("/delete_song", methods=["POST"])
+def delete_song():
+    song_id = request.form["song_id"]
+    songs = load_songs()
+    song = songs.get(song_id)
+    if song and song.get("filename"):
+        path = os.path.join(STORAGE_DIR, song["filename"])
+        if os.path.exists(path):
+            os.remove(path)
+    if song_id in songs:
+        append_log(f"🗑 Slettet sang: {songs[song_id].get('title', song_id)}")
+        del songs[song_id]
+        save_songs(songs)
+    return redirect("/")
+
+@app.route("/stop", methods=["POST"])
+def stop_song():
+    subprocess.run(["pkill", "mpv"])
+    append_log("⏹️ Stoppet avspilling")
+    return redirect("/")
+
+@app.route("/set_volume", methods=["POST"])
+def set_volume():
+    level = request.form["volume"]
+    try:
+        subprocess.run(["pactl", "set-sink-volume", "@DEFAULT_SINK@", f"{level}%"], check=True)
+        append_log(f"🔊 Volum satt til {level}%")
+    except subprocess.CalledProcessError:
+        append_log("❌ Klarte ikke endre volum")
+    return redirect("/")
+
+@app.route("/simulate_rfid", methods=["POST"])
+def simulate_rfid():
+    test_rfid = request.form["rfid"].strip()
+    songs = load_songs()
+    songs["last_read_rfid"] = test_rfid
+    save_songs(songs)
+    append_log(f"🧪 Simulert RFID-skudd: {test_rfid}")
+    return redirect("/")
+
+@app.route("/link_rfid", methods=["POST"])
+def link_rfid():
+    song_id = request.form["song_id"]
+    songs = load_songs()
+    rfid = songs.get("last_read_rfid")
+    if not rfid:
+        append_log("⚠️ Ingen RFID skannet")
+        return redirect("/")
+
+    for sid, info in songs.items():
+        if sid == "last_read_rfid":
+            continue
+        if isinstance(info, dict) and info.get("rfid") == rfid and sid != song_id:
+            append_log("⚠️ RFID allerede i bruk")
+            return redirect("/")
+
+    songs[song_id]["rfid"] = rfid
+    append_log(f"🔗 Knyttet RFID {rfid} til {songs[song_id].get('title', song_id)}")
+    save_songs(songs)
+    return redirect("/")
+
+@app.route("/unlink_rfid", methods=["POST"])
+def unlink_rfid():
+    song_id = request.form["song_id"]
+    songs = load_songs()
+    if "rfid" in songs.get(song_id, {}):
+        del songs[song_id]["rfid"]
+        append_log(f"🚫 Fjernet RFID fra {songs[song_id].get('title', song_id)}")
+        save_songs(songs)
+    return redirect("/")
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) == 3 and sys.argv[1] == "--download":
+        sid = sys.argv[2]
+        songs = load_songs()
+        if sid in songs:
+            from webpanel import download_song  # forsikring
+            download_song(sid, songs[sid]["url"])
+    else:
+        app.run(host="0.0.0.0", port=5000)

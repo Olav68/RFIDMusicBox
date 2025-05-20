@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect
+from flask import Blueprint, render_template, request, redirect # type: ignore
 import subprocess
 
 bluetooth_bp = Blueprint("bluetooth", __name__, template_folder="templates")
