@@ -160,6 +160,13 @@ def wifi_settings():
     except Exception as e:
         return f"❌ Feil ved henting av nettverk: {e}"
     
+    # Hent aktivt nettverk
+    @app.route("/wifi")
+def wifi_settings():
+    ssid = get_connected_ssid()
+    networks = scan_wifi_networks()
+    return render_template("wifi.html", ssid=ssid, networks=networks)
+    
 @app.route("/connect_wifi", methods=["POST"])
 def connect_wifi():
     ssid = request.form["ssid"]
@@ -177,6 +184,7 @@ def disconnect_wifi():
         return redirect("/wifi")
     except subprocess.CalledProcessError as e:
         return f"❌ Klarte ikke koble fra: {e}"
+    
 
 if __name__ == "__main__":
     import sys
