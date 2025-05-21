@@ -1,4 +1,6 @@
-#!/bin/bash
+# Beskrivelse: Skript for å sjekke og aktivere wlan0 hvis den er nede
+#chmod +x installer_tjenester.sh
+#./installer_tjenester.sh
 
 echo "📦 Installerer RFIDMusicBox-tjenester..."
 
