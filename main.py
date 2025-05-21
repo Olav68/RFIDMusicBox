@@ -27,7 +27,9 @@ def play_song(filepath):
 
         result = subprocess.run(["pactl", "get-sink-state", BLUETOOTH_SINK],
                                 capture_output=True, text=True)
-        if "RUNNING" in result.stdout or "IDLE" in result.stdout or "SUSPENDED" in result.stdout:
+        # Sjekk eksakt status
+        status = result.stdout.strip().split()[-1] if result.stdout else ""
+        if status in ["RUNNING", "IDLE", "SUSPENDED"]:
             append_log("🔊 Spiller via Bluetooth")
             subprocess.Popen([
                 "env", f"PULSE_SINK={BLUETOOTH_SINK}",
@@ -66,14 +68,25 @@ if __name__ == "__main__":
                     append_log(f"📻 RFID skannet: {rfid}")
 
                     songs = load_songs()
-                    songs["last_read_rfid"] = rfid
-                    save_songs(songs)
+                    # Ikke lagre last_read_rfid i songs.json hvis det ikke er ønsket
+                    # songs["last_read_rfid"] = rfid
+                    # save_songs(songs)
 
+                    found = False
                     for sid, song in songs.items():
                         if isinstance(song, dict) and song.get("rfid") == rfid:
+                            filename = song.get("filename")
+                            if not filename:
+                                append_log(f"❌ Ingen filnavn for sang: {song.get('title', sid)}")
+                                break
+                            filepath = os.path.join(STORAGE_DIR, filename)
                             append_log(f"▶ Spiller: {song.get('title', sid)} ({filepath})")
-                            filepath = os.path.join(STORAGE_DIR, song["filename"])
                             play_song(filepath)
+                            found = True
                             break
+                    if not found:
+                        append_log("❌ Ingen sang funnet for denne RFID-koden.")
                 else:
-                    buffer += char[-1] if len(char) == 1 else ""
+                    # Legg kun til hvis char er én bokstav/tall
+                    if len(char) == 1 and char.isalnum():
+                        buffer += char
