@@ -1,9 +1,7 @@
+# main.py – Lytter til RFID og spiller sang via utils.play_song
 import os
-import json
-import subprocess
-from datetime import datetime
 from evdev import InputDevice, categorize, ecodes, list_devices
-from utils import append_log, load_songs
+from utils import append_log, load_songs, play_song
 
 SONGS_FILE = "/home/magic/programmer/RFIDMusicBox/songs.json"
 STORAGE_DIR = "/home/magic/programmer/RFIDMusicBox/mp3"
@@ -19,24 +17,6 @@ def find_device():
             return device
     print("❌ Fant ingen enhet som matcher DEVICE_NAME")
     return None
-
-def play_song(filepath, title=None):
-    if title:
-        append_log(f"▶ Spiller av: {title}")
-    else:
-        append_log(f"▶ Spiller av fil: {filepath}")
-
-    if not os.path.exists(filepath):
-        append_log(f"❌ Fil ikke funnet: {filepath}")
-        return
-
-    subprocess.call(["pkill", "-f", "mpv"])  # Stopp forrige avspilling
-
-    try:
-        subprocess.Popen(["mpv", "--no-video", "--force-window=no", filepath])
-        append_log(f"▶ Startet mpv for: {filepath}")
-    except Exception as e:
-        append_log(f"❌ Feil ved avspilling: {e}")
 
 if __name__ == "__main__":
     append_log("🔌 Starter RFID-lytter")
@@ -61,6 +41,7 @@ if __name__ == "__main__":
                 if char == "ENTER":
                     rfid = buffer
                     buffer = ""
+
                     append_log(f"📻 RFID skannet: {rfid}")
 
                     songs = load_songs()
