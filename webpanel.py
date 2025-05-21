@@ -11,12 +11,14 @@ from utils import append_log, load_log, load_songs, save_songs, play_song
 
 app = Flask(__name__)
 app.register_blueprint(bluetooth_bp)
-threading.Thread(target=monitor_wlan0, daemon=True).start()
+
 
 STORAGE_DIR = "/home/magic/RFIDMusicBox/mp3"
 SONGS_FILE = "/home/magic/RFIDMusicBox/songs.json"
 MUSIC_DIR = "/home/magic/RFIDMusicBox/music"
 
+# Restarter wlan0 hvis den er nede
+# Dette er en enkel overvåking av nettverksgrensesnittet wlan0 
 def monitor_wlan0():
     while True:
         state = os.popen("cat /sys/class/net/wlan0/operstate").read().strip()
@@ -25,6 +27,8 @@ def monitor_wlan0():
             os.system("ip link set wlan0 up")
             os.system("nmcli device connect wlan0")
         time.sleep(10)
+
+threading.Thread(target=monitor_wlan0, daemon=True).start()
 
 def is_valid_url(url):
     return url.startswith("http") and (
