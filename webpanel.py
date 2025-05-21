@@ -3,15 +3,28 @@ import os
 import json
 import subprocess
 import socket
+import threading
+import time
 from datetime import datetime
 from bluetooth import bluetooth_bp
 from utils import append_log, load_log, load_songs, save_songs, play_song
 
 app = Flask(__name__)
 app.register_blueprint(bluetooth_bp)
+threading.Thread(target=monitor_wlan0, daemon=True).start()
+
 STORAGE_DIR = "/home/magic/RFIDMusicBox/mp3"
 SONGS_FILE = "/home/magic/RFIDMusicBox/songs.json"
 MUSIC_DIR = "/home/magic/RFIDMusicBox/music"
+
+def monitor_wlan0():
+    while True:
+        state = os.popen("cat /sys/class/net/wlan0/operstate").read().strip()
+        if state != "up":
+            append_log("📶 wlan0 er nede – forsøker å sette den opp...")
+            os.system("ip link set wlan0 up")
+            os.system("nmcli device connect wlan0")
+        time.sleep(10)
 
 def is_valid_url(url):
     return url.startswith("http") and (
