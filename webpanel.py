@@ -28,7 +28,7 @@ def monitor_wlan0():
             os.system("nmcli device connect wlan0")
         time.sleep(10)
 
-threading.Thread(target=monitor_wlan0, daemon=True).start()
+
 
 def is_valid_url(url):
     return url.startswith("http") and (
@@ -206,6 +206,7 @@ def unlink_rfid():
     return redirect("/")
 
 if __name__ == "__main__":
+    threading.Thread(target=monitor_wlan0, daemon=True).start()
     import sys
     if len(sys.argv) == 3 and sys.argv[1] == "--download":
         sid = sys.argv[2]
