@@ -4,7 +4,7 @@ import subprocess
 from datetime import datetime
 
 
-def append_log(entry, log_file="/home/magic/RFIDMusicBox/activity_log.json", max_lines=100):
+def append_log(entry, log_file="/home/magic/programmer/RFIDMusicBox/activity_log.json", max_lines=100):
     try:
         if os.path.exists(log_file):
             with open(log_file, "r") as f:
@@ -25,7 +25,7 @@ def append_log(entry, log_file="/home/magic/RFIDMusicBox/activity_log.json", max
     except Exception as e:
         print(f"❌ Feil ved logging: {e}")
 
-def load_log(log_file="/home/magic/RFIDMusicBox/activity_log.json"):
+def load_log(log_file="/home/magic/programmer/RFIDMusicBox/activity_log.json"):
     if os.path.exists(log_file):
         with open(log_file, "r") as f:
             try:
@@ -34,7 +34,7 @@ def load_log(log_file="/home/magic/RFIDMusicBox/activity_log.json"):
                 return []
     return []
 
-def load_songs(song_file="/home/magic/RFIDMusicBox/songs.json"):
+def load_songs(song_file="/home/magic/programmer/RFIDMusicBox/songs.json"):
     if os.path.exists(song_file):
         with open(song_file, "r") as f:
             try:
@@ -43,7 +43,7 @@ def load_songs(song_file="/home/magic/RFIDMusicBox/songs.json"):
                 return []
     return []
 
-def save_songs(songs, song_file="/home/magic/RFIDMusicBox/songs.json"):
+def save_songs(songs, song_file="/home/magic/programmer/RFIDMusicBox/songs.json"):
     try:
         with open(song_file, "w") as f:
             json.dump(songs, f, indent=2)

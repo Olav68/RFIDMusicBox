@@ -2,7 +2,7 @@
 
 echo "📦 Installerer RFIDMusicBox-tjenester..."
 
-SERVICE_DIR="/home/magic/RFIDMusicBox/services"
+SERVICE_DIR="/home/magic/programmer/RFIDMusicBox/services"
 
 if [ ! -d "$SERVICE_DIR" ]; then
   echo "❌ Fant ikke service-mappen: $SERVICE_DIR"

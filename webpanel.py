@@ -10,9 +10,9 @@ from utils import append_log, load_log, load_songs, save_songs, play_song
 
 app = Flask(__name__)
 
-STORAGE_DIR = "/home/magic/RFIDMusicBox/mp3"
-SONGS_FILE = "/home/magic/RFIDMusicBox/songs.json"
-MUSIC_DIR = "/home/magic/RFIDMusicBox/music"
+STORAGE_DIR = "/home/magic/programmer/RFIDMusicBox/mp3"
+SONGS_FILE = "/home/magic/programmer/RFIDMusicBox/songs.json"
+MUSIC_DIR = "/home/magic/programmer/RFIDMusicBox/music"
 
 def is_valid_url(url):
     return url.startswith("http") and (

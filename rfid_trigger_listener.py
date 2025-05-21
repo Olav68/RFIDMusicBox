@@ -4,9 +4,9 @@ import json
 import os
 from utils import load_songs, append_log, play_song
 
-SONGS_FILE = "/home/magic/RFIDMusicBox/songs.json"
-STORAGE_DIR = "/home/magic/RFIDMusicBox/mp3"
-LAST_RFID_FILE = "/home/magic/RFIDMusicBox/.last_rfid_seen.txt"
+SONGS_FILE = "/home/magic/programmer/RFIDMusicBox/songs.json"
+STORAGE_DIR = "/home/magic/programmer/RFIDMusicBox/mp3"
+LAST_RFID_FILE = "/home/magic/programmer/RFIDMusicBox/.last_rfid_seen.txt"
 
 def get_last_seen_rfid():
     if os.path.exists(LAST_RFID_FILE):

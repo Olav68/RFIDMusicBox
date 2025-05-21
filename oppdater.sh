@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "🔄 Henter siste endringer fra GitHub..."
-cd /home/magic/RFIDMusicBox || exit 1
+cd /home/magic/programmer/RFIDMusicBox || exit 1
 git pull
 
 echo "🚀 Restarter tjenester..."

@@ -5,10 +5,10 @@ from datetime import datetime
 from evdev import InputDevice, categorize, ecodes, list_devices
 from utils import append_log, load_songs, save_songs
 
-SONGS_FILE = "/home/magic/RFIDMusicBox/songs.json"
-STORAGE_DIR = "/home/magic/RFIDMusicBox/mp3"
+SONGS_FILE = "/home/magic/programmer/RFIDMusicBox/songs.json"
+STORAGE_DIR = "/home/magic/programmer/RFIDMusicBox/mp3"
 DEVICE_NAME = "RFIDeas USB Keyboard"
-BLUETOOTH_SINK = "bluez_sink.B2_F9_2D_EE_95_9D.a2dp_sink"
+
 
 def find_device():
     print("🔍 Søker etter input-enheter...")

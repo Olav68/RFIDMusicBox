@@ -3,8 +3,8 @@ Description=RFID Input Listener (tastaturbasert)
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /home/magic/RFIDMusicBox/rfid_input_listener.py
-WorkingDirectory=/home/magic/RFIDMusicBox
+ExecStart=/usr/bin/python3 /home/magic/programmer/RFIDMusicBox/rfid_input_listener.py
+WorkingDirectory=/home/magic/programmer/RFIDMusicBox
 Restart=always
 User=magic
 Environment=PYTHONUNBUFFERED=1
