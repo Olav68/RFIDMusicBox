@@ -117,6 +117,21 @@ def play_song_route():
 
     return redirect("/")
 
+@app.route("/rename_title", methods=["POST"])
+def rename_title():
+    song_id = request.form["song_id"]
+    new_title = request.form["title"].strip()
+
+    songs = load_songs()
+    if song_id in songs:
+        songs[song_id]["title"] = new_title
+        save_songs(songs)
+        append_log(f"✏️ Endret tittel på sang {song_id} til \"{new_title}\"")
+    else:
+        append_log(f"❌ Forsøk på å endre tittel for ukjent ID: {song_id}")
+
+    return redirect("/")
+
 @app.route("/delete_song", methods=["POST"])
 def delete_song():
     song_id = request.form["song_id"]

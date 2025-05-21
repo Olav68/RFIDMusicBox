@@ -72,7 +72,7 @@ updateRFIDStatus();
 
 <form action="/set_volume" method="post" style="margin-top: 1em;">
     <label for="volume">Volum (%):</label>
-    <input type="number" name="volume" min="0" max="150" step="5" value="80">
+    <input type="number" name="volume" min="0" max="150" step="5" value="50">
     <button type="submit">🎚 Sett volum</button>
 </form>
 
@@ -89,7 +89,13 @@ updateRFIDStatus();
     <tbody>
     {% for sid, song in songs.items() if sid != 'last_read_rfid' %}
         <tr>
-            <td>{{ song.title if 'title' in song else 'Ukjent' }}</td>
+            <td>
+    <form action="/rename_title" method="post" style="display:flex; gap:5px;">
+        <input type="hidden" name="song_id" value="{{ sid }}">
+        <input type="text" name="title" value="{{ song.title if 'title' in song else 'Ukjent' }}" style="flex:1;">
+        <button type="submit" class="button-new">💾</button>
+    </form>
+</td>
             <td><a href="{{ song.url }}" target="_blank">Link</a></td>
             <td class="{{ song.status }}">
                 {{ '✅ Klar' if song.status == 'ready' else '⏳ Henter' if song.status == 'downloading' else '❌ Feil' }}
