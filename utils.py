@@ -52,6 +52,7 @@ def save_songs(songs, song_file="/home/magic/programmer/RFIDMusicBox/songs.json"
     except Exception as e:
         print(f"❌ Feil ved lagring av sanger: {e}")
 
+#pulse
 def play_song(filepath):
     append_log(f"Starter å spille: {filepath}")
 
