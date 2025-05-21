@@ -59,11 +59,9 @@ def play_song(filepath):
         append_log(f"❌ Fil ikke funnet: {filepath}")
         return
 
-    # Stopp evt. tidligere mpv-prosesser
-    subprocess.call(["pkill", "-f", "mpv"])
+    subprocess.call(["pkill", "-f", "mpv"])  # Stopp evt. tidligere avspilling
 
     try:
-        # Bruk standard output (ikke Bluetooth)
         subprocess.Popen([
             "mpv", "--no-video", "--force-window=no", filepath
         ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

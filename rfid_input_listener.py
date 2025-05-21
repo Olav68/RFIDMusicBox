@@ -1,7 +1,7 @@
 import os
 import json
 from evdev import InputDevice, categorize, ecodes, list_devices
-from utils import append_log, load_songs, save_songs
+from utils import append_log, load_songs, save_songs, play_song
 
 SONGS_FILE = "/home/magic/programmer/RFIDMusicBox/songs.json"
 DEVICE_NAME = "RFIDeas USB Keyboard"
