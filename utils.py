@@ -54,12 +54,26 @@ def save_songs(songs, song_file="/home/magic/programmer/RFIDMusicBox/songs.json"
 
 def play_song(filepath):
     append_log(f"Starter å spille: {filepath}")
+
     if not os.path.exists(filepath):
         append_log(f"❌ Fil ikke funnet: {filepath}")
         return
 
-    # Stopp evt. tidligere mpv-prosesser
-    subprocess.call(["pkill", "-f", "mpv"])
+    try:
+        # Stopp forrige mpv hvis den kjører
+        subprocess.call(["pkill", "-f", "mpv"])
+        append_log("🔇 Tidligere mpv-prosess stoppet")
+
+        # Start mpv med logg til fil
+        log_path = "/tmp/mpv_log.txt"
+        with open(log_path, "w") as f:
+            subprocess.Popen([
+                "mpv", "--ao=pipewire", "--no-video", "--force-window=no", filepath
+            ], stdout=f, stderr=f)
+
+        append_log(f"▶ mpv startet med {filepath}, logger til {log_path}")
+    except Exception as e:
+        append_log(f"❌ Feil ved avspilling i play_song(): {e}")
 
     try:
         # Spill av via PulseAudio (fungerer på både pipewire og pulseaudio)
