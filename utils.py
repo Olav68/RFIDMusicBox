@@ -60,19 +60,15 @@ def play_song(filepath):
         return
 
     try:
-        # Stopp forrige mpv hvis den kjører
         subprocess.call(["pkill", "-f", "mpv"])
         append_log("🔇 Tidligere mpv-prosess stoppet")
-    except Exception as e:
-        append_log(f"⚠️ Klarte ikke stoppe mpv: {e}")
 
-    try:
         log_path = "/tmp/mpv_log.txt"
         with open(log_path, "w") as f:
             subprocess.Popen([
-                "mpv", "--ao=pulse", "--no-video", "--force-window=no", filepath
+                "mpv", "--no-video", "--force-window=no", filepath
             ], stdout=f, stderr=f)
 
-        append_log(f"▶ mpv startet med {filepath}, logger til {log_path}")
+        append_log(f"▶ mpv startet med {filepath}, logges til {log_path}")
     except Exception as e:
         append_log(f"❌ Feil ved avspilling i play_song(): {e}")
