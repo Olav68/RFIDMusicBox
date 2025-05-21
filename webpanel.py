@@ -25,6 +25,11 @@ def find_song_by_rfid(data, rfid_code):
             return val
     return None
 
+@app.route("/log")
+def get_log():
+    log = load_log()
+    return jsonify(log[:10])  # Returner de 10 nyeste
+
 @app.route("/status")
 def status():
     data = load_songs()

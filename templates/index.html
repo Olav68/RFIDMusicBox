@@ -123,16 +123,32 @@ updateRFIDStatus();
     </tbody>
 </table>
 
-{% if log %}
 <div class="timeline">
     <h3>📜 Logg</h3>
-    <ul>
-    {% for entry in log[-10:] %}
-        <li>{{ entry }}</li>
-    {% endfor %}
-    </ul>
+    <ul id="log-entries"></ul>
 </div>
-{% endif %}
+
+<script>
+function updateLog() {
+    fetch('/log')
+        .then(res => res.json())
+        .then(log => {
+            const ul = document.getElementById("log-entries");
+            ul.innerHTML = "";
+            for (const entry of log) {
+                const li = document.createElement("li");
+                li.innerText = `${entry.time} - ${entry.entry}`;
+                ul.appendChild(li);
+            }
+        })
+        .catch(err => {
+            console.error("Feil ved oppdatering av logg:", err);
+        });
+}
+
+setInterval(updateLog, 3000);  // Hent hvert 3. sekund
+updateLog();
+</script>
 
 </body>
 </html>
