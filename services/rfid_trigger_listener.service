@@ -1,0 +1,13 @@
+[Unit]
+Description=RFID Trigger Listener (via seriell port)
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/magic/RFIDMusicBox/rfid_trigger_listener.py
+WorkingDirectory=/home/magic/RFIDMusicBox
+Restart=always
+User=magic
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
