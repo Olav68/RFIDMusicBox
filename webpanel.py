@@ -12,34 +12,14 @@ from utils import append_log, load_log, load_songs, save_songs, play_song
 app = Flask(__name__)
 app.register_blueprint(bluetooth_bp)
 
-
 STORAGE_DIR = "/home/magic/RFIDMusicBox/mp3"
 SONGS_FILE = "/home/magic/RFIDMusicBox/songs.json"
 MUSIC_DIR = "/home/magic/RFIDMusicBox/music"
-
-# Restarter wlan0 hvis den er nede
-# Dette er en enkel overvåking av nettverksgrensesnittet wlan0 
-def monitor_wlan0():
-    while True:
-        state = os.popen("cat /sys/class/net/wlan0/operstate").read().strip()
-        if state != "up":
-            append_log("📶 wlan0 er nede – forsøker å sette den opp...")
-            #os.system("sudo /usr/sbin/ip link set wlan0 up")
-            os.system("sudo /usr/bin/nmcli device connect wlan0")
-        time.sleep(10)
-
-
 
 def is_valid_url(url):
     return url.startswith("http") and (
         "youtube.com" in url or "spotify.com" in url or "youtu.be" in url
     )
-
-def load_songs():
-    if os.path.exists(SONGS_FILE):
-        with open(SONGS_FILE, "r") as f:
-            return json.load(f)
-    return {}
 
 def find_song_by_rfid(data, rfid_code):
     for key, val in data.items():
@@ -206,13 +186,11 @@ def unlink_rfid():
     return redirect("/")
 
 if __name__ == "__main__":
-    threading.Thread(target=monitor_wlan0, daemon=True).start()
     import sys
     if len(sys.argv) == 3 and sys.argv[1] == "--download":
         sid = sys.argv[2]
         songs = load_songs()
         if sid in songs:
-            from webpanel import download_song  # forsikring
             download_song(sid, songs[sid]["url"])
     else:
         app.run(host="0.0.0.0", port=5000)
