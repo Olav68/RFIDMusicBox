@@ -52,7 +52,7 @@ def save_songs(songs, song_file="/home/magic/programmer/RFIDMusicBox/songs.json"
     except Exception as e:
         print(f"❌ Feil ved lagring av sanger: {e}")
 
-def play_song(filepath):
+ddef play_song(filepath):
     append_log(f"Starter å spille: {filepath}")
 
     if not os.path.exists(filepath):
@@ -66,9 +66,9 @@ def play_song(filepath):
         log_path = "/tmp/mpv_log.txt"
         with open(log_path, "w") as f:
             subprocess.Popen([
-                "mpv", "--no-video", "--force-window=no", filepath
+                "mpv", "--ao=alsa", "--no-video", "--volume=100", filepath
             ], stdout=f, stderr=f)
 
-        append_log(f"▶ mpv startet for {filepath}, logges til {log_path}")
+        append_log(f"▶ mpv startet med {filepath}, logger til {log_path}")
     except Exception as e:
-        append_log(f"❌ Feil ved avspilling: {e}")
+        append_log(f"❌ Feil ved avspilling i play_song(): {e}")
