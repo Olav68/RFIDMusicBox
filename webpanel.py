@@ -24,8 +24,8 @@ def monitor_wlan0():
         state = os.popen("cat /sys/class/net/wlan0/operstate").read().strip()
         if state != "up":
             append_log("📶 wlan0 er nede – forsøker å sette den opp...")
-            os.system("sudo ip link set wlan0 up")
-            os.system("sudo nmcli device connect wlan0")
+            os.system("sudo /usr/sbin/ip link set wlan0 up")
+            os.system("sudo /usr/bin/nmcli device connect wlan0")
         time.sleep(10)
 
 
