@@ -6,11 +6,9 @@ import socket
 import threading
 import time
 from datetime import datetime
-from bluetooth import bluetooth_bp
 from utils import append_log, load_log, load_songs, save_songs, play_song
 
 app = Flask(__name__)
-app.register_blueprint(bluetooth_bp)
 
 STORAGE_DIR = "/home/magic/RFIDMusicBox/mp3"
 SONGS_FILE = "/home/magic/RFIDMusicBox/songs.json"

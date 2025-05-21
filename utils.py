@@ -3,7 +3,6 @@ import json
 import subprocess
 from datetime import datetime
 
-BLUETOOTH_SINK = "bluez_sink.B2_F9_2D_EE_95_9D.a2dp_sink"
 
 def append_log(entry, log_file="/home/magic/RFIDMusicBox/activity_log.json", max_lines=100):
     try:
@@ -58,11 +57,10 @@ def play_song(filepath):
         print(f"❌ Fil ikke funnet: {filepath}")
         return
 
-    subprocess.call(["pkill", "-f", "mpv"])  # Stopp tidligere avspilling
+    subprocess.call(["pkill", "-f", "mpv"])  # Stopp eventuell tidligere avspilling
 
     try:
         subprocess.Popen([
-            "env", f"PULSE_SINK={BLUETOOTH_SINK}",
             "mpv", "--no-video", "--force-window=no", filepath
         ])
         print(f"▶ Starter avspilling: {filepath}")
