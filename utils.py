@@ -69,6 +69,6 @@ def play_song(filepath):
                 "mpv", "--no-video", "--force-window=no", filepath
             ], stdout=f, stderr=f)
 
-        append_log(f"▶ mpv startet med {filepath}, logges til {log_path}")
+        append_log(f"▶ mpv startet for {filepath}, logges til {log_path}")
     except Exception as e:
-        append_log(f"❌ Feil ved avspilling i play_song(): {e}")
+        append_log(f"❌ Feil ved avspilling: {e}")
