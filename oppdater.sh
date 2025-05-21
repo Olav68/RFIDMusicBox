@@ -1,4 +1,5 @@
 #!/bin/bash
+
 echo "🔄 Henter siste endringer fra GitHub..."
 cd /home/magic/RFIDMusicBox || exit 1
 git pull
