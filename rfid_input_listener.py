@@ -45,9 +45,12 @@ def main():
                     songs = load_songs()
                     songs["last_read_rfid"] = rfid
                     save_songs(songs)
+                    print(f"🔔 RFID: {rfid}")  # valgfritt: terminal
                 else:
-                    if len(char) == 1:
+                    if len(char) == 1 and char.isalnum():
                         buffer += char
+                    else:
+                        append_log(f"⚠️ Ignorerer ukjent tast: {char}")
 
 
 if __name__ == "__main__":

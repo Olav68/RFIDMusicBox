@@ -1,6 +1,5 @@
-#rfid_trigger_listener
+# rfid_trigger_listener.py
 import time
-import json
 import os
 from utils import load_songs, append_log, play_song
 
@@ -9,19 +8,16 @@ STORAGE_DIR = "/home/magic/programmer/RFIDMusicBox/mp3"
 LAST_RFID_FILE = "/home/magic/programmer/RFIDMusicBox/.last_rfid_seen.txt"
 
 def get_last_seen_rfid():
-    append_log(f"📥 Henter siste scannede kode: {rfid}")
     if os.path.exists(LAST_RFID_FILE):
         with open(LAST_RFID_FILE, "r") as f:
             return f.read().strip()
     return None
 
 def set_last_seen_rfid(rfid_code):
-    append_log(f"📥 Setter siste scannede kode: {rfid}")
     with open(LAST_RFID_FILE, "w") as f:
         f.write(rfid_code)
 
 def find_song_by_rfid(data, rfid_code):
-    append_log(f"📥 RFID-kode mottatt: {rfid}, finnner sangen")
     for key, val in data.items():
         if isinstance(val, dict) and val.get("rfid") == rfid_code:
             return val

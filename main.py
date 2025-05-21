@@ -20,8 +20,12 @@ def find_device():
     print("❌ Fant ingen enhet som matcher DEVICE_NAME")
     return None
 
-def play_song(filepath):
-    append_log(f" Spiller av: {song.get('title', sid)}")
+def play_song(filepath, title=None):
+    if title:
+        append_log(f"▶ Spiller av: {title}")
+    else:
+        append_log(f"▶ Spiller av fil: {filepath}")
+
     if not os.path.exists(filepath):
         append_log(f"❌ Fil ikke funnet: {filepath}")
         return
@@ -30,7 +34,7 @@ def play_song(filepath):
 
     try:
         subprocess.Popen(["mpv", "--no-video", "--force-window=no", filepath])
-        append_log(f"▶ Starter avspilling: {filepath}")
+        append_log(f"▶ Startet mpv for: {filepath}")
     except Exception as e:
         append_log(f"❌ Feil ved avspilling: {e}")
 

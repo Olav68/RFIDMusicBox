@@ -146,10 +146,19 @@ def set_volume():
 @app.route("/simulate_rfid", methods=["POST"])
 def simulate_rfid():
     test_rfid = request.form["rfid"].strip()
+    append_log(f"🧪 Simulerer RFID: {test_rfid}")
+
     songs = load_songs()
     songs["last_read_rfid"] = test_rfid
     save_songs(songs)
-    append_log(f"🧪 Simulert RFID-skudd: {test_rfid}")
+
+    # Bekreft om RFID faktisk matcher en sang
+    song = find_song_by_rfid(songs, test_rfid)
+    if song:
+        append_log(f"✅ Simulert RFID matchet sang: {song.get('title', test_rfid)}")
+    else:
+        append_log(f"❌ Simulert RFID {test_rfid} har ingen tilknyttet sang")
+
     return redirect("/")
 
 @app.route("/link_rfid", methods=["POST"])

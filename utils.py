@@ -53,16 +53,21 @@ def save_songs(songs, song_file="/home/magic/programmer/RFIDMusicBox/songs.json"
         print(f"❌ Feil ved lagring av sanger: {e}")
 
 def play_song(filepath):
+    append_log(f"Starter å spille: {filepath}")
+
     if not os.path.exists(filepath):
-        print(f"❌ Fil ikke funnet: {filepath}")
+        append_log(f"❌ Fil ikke funnet: {filepath}")
         return
 
-    subprocess.call(["pkill", "-f", "mpv"])  # Stopp eventuell tidligere avspilling
+    # Stopp evt. tidligere mpv-prosesser
+    subprocess.call(["pkill", "-f", "mpv"])
 
     try:
+        # Bruk standard output (ikke Bluetooth)
         subprocess.Popen([
             "mpv", "--no-video", "--force-window=no", filepath
-        ])
-        print(f"▶ Starter avspilling: {filepath}")
+        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        append_log(f"▶ Starter avspilling via mpv: {filepath}")
     except Exception as e:
-        print(f"❌ Feil ved avspilling: {e}")
+        append_log(f"❌ Feil ved avspilling: {e}")
