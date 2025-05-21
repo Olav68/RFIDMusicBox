@@ -3,12 +3,11 @@ import json
 import subprocess
 from datetime import datetime
 from evdev import InputDevice, categorize, ecodes, list_devices
-from utils import append_log, load_songs, save_songs
+from utils import append_log, load_songs
 
 SONGS_FILE = "/home/magic/programmer/RFIDMusicBox/songs.json"
 STORAGE_DIR = "/home/magic/programmer/RFIDMusicBox/mp3"
 DEVICE_NAME = "RFIDeas USB Keyboard"
-
 
 def find_device():
     print("🔍 Søker etter input-enheter...")
@@ -22,24 +21,18 @@ def find_device():
     return None
 
 def play_song(filepath):
-    try:
-        subprocess.call(["pkill", "-f", "mpv"])  # Stopp forrige avspilling
+    append_log(f" Spiller av: {song.get('title', sid)}")
+    if not os.path.exists(filepath):
+        append_log(f"❌ Fil ikke funnet: {filepath}")
+        return
 
-        result = subprocess.run(["pactl", "get-sink-state", BLUETOOTH_SINK],
-                                capture_output=True, text=True)
-        # Sjekk eksakt status
-        status = result.stdout.strip().split()[-1] if result.stdout else ""
-        if status in ["RUNNING", "IDLE", "SUSPENDED"]:
-            append_log("🔊 Spiller via Bluetooth")
-            subprocess.Popen([
-                "env", f"PULSE_SINK={BLUETOOTH_SINK}",
-                "mpv", "--no-video", "--force-window=no", filepath
-            ])
-        else:
-            append_log("🔈 Bluetooth ikke tilkoblet – spiller via standard utgang")
-            subprocess.Popen(["mpv", "--no-video", "--force-window=no", filepath])
+    subprocess.call(["pkill", "-f", "mpv"])  # Stopp forrige avspilling
+
+    try:
+        subprocess.Popen(["mpv", "--no-video", "--force-window=no", filepath])
+        append_log(f"▶ Starter avspilling: {filepath}")
     except Exception as e:
-        append_log(f"❌ Kunne ikke spille lyd: {e}")
+        append_log(f"❌ Feil ved avspilling: {e}")
 
 if __name__ == "__main__":
     append_log("🔌 Starter RFID-lytter")
@@ -64,14 +57,9 @@ if __name__ == "__main__":
                 if char == "ENTER":
                     rfid = buffer
                     buffer = ""
-
                     append_log(f"📻 RFID skannet: {rfid}")
 
                     songs = load_songs()
-                    # Ikke lagre last_read_rfid i songs.json hvis det ikke er ønsket
-                    # songs["last_read_rfid"] = rfid
-                    # save_songs(songs)
-
                     found = False
                     for sid, song in songs.items():
                         if isinstance(song, dict) and song.get("rfid") == rfid:
@@ -87,6 +75,5 @@ if __name__ == "__main__":
                     if not found:
                         append_log("❌ Ingen sang funnet for denne RFID-koden.")
                 else:
-                    # Legg kun til hvis char er én bokstav/tall
                     if len(char) == 1 and char.isalnum():
                         buffer += char
