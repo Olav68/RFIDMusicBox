@@ -1,3 +1,4 @@
+
 import os
 import json
 import subprocess
@@ -59,11 +60,9 @@ def play_song(filepath):
         return
 
     try:
-        # Stopp forrige mpv hvis den kjører
         subprocess.call(["pkill", "-f", "mpv"])
         append_log("🔇 Tidligere mpv-prosess stoppet")
 
-        # Start mpv med alsa direkte
         subprocess.Popen([
             "mpv", "--ao=alsa", "--no-video", "--force-window=no", filepath
         ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
