@@ -81,7 +81,7 @@ def download_youtube_playlist(url, target_folder):
             "yt-dlp",
             "-x", "--audio-format", "mp3",
             url,
-            "-o", os.path.join(target_folder, "%(title)s.%(ext)s")
+            "-o", f"{target_folder}/%(title)s.%(ext)s"
         ]
         result = subprocess.run(cmd)
         return result.returncode == 0
