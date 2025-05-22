@@ -48,27 +48,31 @@ if __name__ == "__main__":
                     found = False
                     for sid, song in songs.items():
                         if isinstance(song, dict) and song.get("rfid") == rfid:
+                            # Spilleliste
                             if "playlist_dir" in song:
-                                playlist_path = os.path.join(STORAGE_DIR, song["playlist_dir"])
-                                if os.path.isdir(playlist_path):
-                                    mp3_files = sorted([
-                                        os.path.join(playlist_path, f)
-                                        for f in os.listdir(playlist_path)
-                                        if f.endswith(".mp3")
-                                    ])
-                                    append_log(f"▶ Spiller spilleliste: {song.get('title', sid)}")
-                                    for file in mp3_files:
-                                        play_song(file)
+                                folder = os.path.join(STORAGE_DIR, song["playlist_dir"])
+                                if os.path.exists(folder):
+                                    files = sorted(f for f in os.listdir(folder) if f.endswith(".mp3"))
+                                    if files:
+                                        append_log(f"▶ Spiller spilleliste: {song.get('title', sid)}")
+                                        for file in files:
+                                            filepath = os.path.join(folder, file)
+                                            append_log(f"▶ Spiller fra liste: {filepath}")
+                                            play_song(filepath)
+                                    else:
+                                        append_log(f"❌ Ingen lydfiler i spilleliste-mappen: {folder}")
                                 else:
-                                    append_log(f"❌ Mappen finnes ikke: {playlist_path}")
+                                    append_log(f"❌ Spilleliste-mappe finnes ikke: {folder}")
+                            # Enkeltsang
+                            elif "filename" in song:
+                                filepath = os.path.join(STORAGE_DIR, song["filename"])
+                                if os.path.exists(filepath):
+                                    append_log(f"▶ Spiller: {song.get('title', sid)} ({filepath})")
+                                    play_song(filepath)
+                                else:
+                                    append_log(f"❌ Fil ikke funnet: {filepath}")
                             else:
-                                filename = song.get("filename")
-                                if not filename:
-                                    append_log(f"❌ Ingen filnavn for sang: {song.get('title', sid)}")
-                                    break
-                                filepath = os.path.join(STORAGE_DIR, filename)
-                                append_log(f"▶ Spiller: {song.get('title', sid)} ({filepath})")
-                                play_song(filepath)
+                                append_log(f"❌ Ingen gyldig kilde for RFID: {rfid}")
                             found = True
                             break
                     if not found:
