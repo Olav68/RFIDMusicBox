@@ -49,46 +49,6 @@ def status():
     }
     return jsonify(status)
 
-def download_song(song_id, url):
-    songs = load_songs()
-    if "list=" in url:
-        # YouTube-spilleliste
-        playlist_dir = f"playlist_{song_id}"
-        full_path = os.path.join(STORAGE_DIR, playlist_dir)
-        os.makedirs(full_path, exist_ok=True)
-        cmd = [
-            "yt-dlp",
-            "-x",
-            "--audio-format", "mp3",
-            "--yes-playlist",
-            "-o", f"{full_path}/%(title)s.%(ext)s",
-            url
-        ]
-        result = subprocess.run(cmd)
-        if result.returncode == 0:
-            songs[song_id]["status"] = "ready"
-            songs[song_id]["playlist_dir"] = playlist_dir
-            append_log(f"📥 Lastet ned spilleliste til: {playlist_dir}")
-        else:
-            songs[song_id]["status"] = "error"
-            append_log(f"❌ Feil ved nedlasting av spilleliste: {url}")
-    else:
-        filename = f"song_{song_id}.mp3"
-        full_path = os.path.join(STORAGE_DIR, filename)
-        cmd = ["yt-dlp", "-x", "--audio-format", "mp3", url, "-o", full_path]
-        result = subprocess.run(cmd)
-        if result.returncode == 0:
-            songs[song_id]["status"] = "ready"
-            songs[song_id]["filename"] = filename
-            meta = subprocess.run(["yt-dlp", "--get-title", url], capture_output=True, text=True)
-            songs[song_id]["title"] = meta.stdout.strip() if meta.returncode == 0 else filename
-            append_log(f"🎵 Lastet ned sang: {songs[song_id]['title']}")
-        else:
-            songs[song_id]["status"] = "error"
-            append_log(f"❌ Nedlasting feilet: {url}")
-
-    save_songs(songs)
-
 @app.route("/")
 def index():
     songs = load_songs()
@@ -223,6 +183,11 @@ if __name__ == "__main__":
         sid = sys.argv[2]
         songs = load_songs()
         if sid in songs:
-            download_song(sid, songs[sid]["url"])
+            url = songs[sid].get("url")
+            if is_youtube_playlist(url):
+                download_youtube_playlist(sid, url)
+            else:
+                # fallback for vanlige sanger
+                download_youtube_playlist(sid, url)  # TODO: Rename to download_song()
     else:
         app.run(host="0.0.0.0", port=5000)
