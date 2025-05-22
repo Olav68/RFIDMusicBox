@@ -38,9 +38,9 @@ def status():
     match = find_song_by_rfid(data, rfid)
     valid = False
     if match:
-        if "filename" in match:
+        if match.get("type") == "song" and "filename" in match:
             valid = os.path.exists(os.path.join(STORAGE_DIR, match["filename"]))
-        elif "playlist_dir" in match:
+        elif match.get("type") == "playlist" and "playlist_dir" in match:
             folder_path = os.path.join(STORAGE_DIR, match["playlist_dir"])
             valid = os.path.exists(folder_path) and any(f.endswith(".mp3") for f in os.listdir(folder_path))
     status = {
@@ -48,6 +48,37 @@ def status():
         "status": "ready" if valid else "missing"
     }
     return jsonify(status)
+
+def download_song(song_id, url):
+    songs = load_songs()
+    if is_youtube_playlist(url):
+        playlist_dir = f"playlist_{song_id}"
+        full_path = os.path.join(STORAGE_DIR, playlist_dir)
+        os.makedirs(full_path, exist_ok=True)
+        success = download_youtube_playlist(url, full_path)
+        if success:
+            songs[song_id]["status"] = "ready"
+            songs[song_id]["playlist_dir"] = playlist_dir
+            append_log(f"📥 Lastet ned spilleliste til: {playlist_dir}")
+        else:
+            songs[song_id]["status"] = "error"
+            append_log(f"❌ Feil ved nedlasting av spilleliste: {url}")
+    else:
+        filename = f"song_{song_id}.mp3"
+        full_path = os.path.join(STORAGE_DIR, filename)
+        cmd = ["yt-dlp", "-x", "--audio-format", "mp3", url, "-o", full_path]
+        result = subprocess.run(cmd)
+        if result.returncode == 0:
+            songs[song_id]["status"] = "ready"
+            songs[song_id]["filename"] = filename
+            meta = subprocess.run(["yt-dlp", "--get-title", url], capture_output=True, text=True)
+            songs[song_id]["title"] = meta.stdout.strip() if meta.returncode == 0 else filename
+            append_log(f"🎵 Lastet ned sang: {songs[song_id]['title']}")
+        else:
+            songs[song_id]["status"] = "error"
+            append_log(f"❌ Nedlasting feilet: {url}")
+
+    save_songs(songs)
 
 @app.route("/")
 def index():
@@ -66,7 +97,8 @@ def add_url():
         return redirect("/")
     song_id = str(int(datetime.now().timestamp() * 1000))
     songs = load_songs()
-    songs[song_id] = {"url": url, "status": "downloading"}
+    song_type = "playlist" if is_youtube_playlist(url) else "song"
+    songs[song_id] = {"url": url, "status": "downloading", "type": song_type}
     save_songs(songs)
     append_log("🆕 Ny sang eller liste registrert")
     subprocess.Popen(["python3", __file__, "--download", song_id])
@@ -81,12 +113,12 @@ def play_song_route():
         return redirect("/")
 
     song = songs[song_id]
-    if "playlist_dir" in song:
+    if song.get("type") == "playlist" and "playlist_dir" in song:
         folder = os.path.join(STORAGE_DIR, song["playlist_dir"])
         files = sorted(f for f in os.listdir(folder) if f.endswith(".mp3"))
         for file in files:
             play_song(os.path.join(folder, file))
-    elif "filename" in song:
+    elif song.get("type") == "song" and "filename" in song:
         filepath = os.path.join(STORAGE_DIR, song["filename"])
         if os.path.exists(filepath):
             play_song(filepath)
@@ -95,99 +127,3 @@ def play_song_route():
             append_log(f"❌ Fil ikke funnet: {filepath}")
 
     return redirect("/")
-
-@app.route("/delete_song", methods=["POST"])
-def delete_song():
-    song_id = request.form["song_id"]
-    songs = load_songs()
-    song = songs.get(song_id)
-    if song:
-        if "filename" in song:
-            path = os.path.join(STORAGE_DIR, song["filename"])
-            if os.path.exists(path):
-                os.remove(path)
-        elif "playlist_dir" in song:
-            folder = os.path.join(STORAGE_DIR, song["playlist_dir"])
-            if os.path.exists(folder):
-                for f in os.listdir(folder):
-                    os.remove(os.path.join(folder, f))
-                os.rmdir(folder)
-        append_log(f"🗑 Slettet sang eller spilleliste: {song.get('title', song_id)}")
-        del songs[song_id]
-        save_songs(songs)
-    return redirect("/")
-
-@app.route("/stop", methods=["POST"])
-def stop_song():
-    subprocess.run(["pkill", "mpv"])
-    append_log("⏹️ Stoppet avspilling")
-    return redirect("/")
-
-@app.route("/set_volume", methods=["POST"])
-def set_volume():
-    level = request.form["volume"]
-    try:
-        subprocess.run(["pactl", "set-sink-volume", "@DEFAULT_SINK@", f"{level}%"], check=True)
-        append_log(f"🔊 Volum satt til {level}%")
-    except subprocess.CalledProcessError:
-        append_log("❌ Klarte ikke endre volum")
-    return redirect("/")
-
-@app.route("/simulate_rfid", methods=["POST"])
-def simulate_rfid():
-    test_rfid = request.form["rfid"].strip()
-    songs = load_songs()
-    songs["last_read_rfid"] = test_rfid
-    save_songs(songs)
-    append_log(f"🧪 Simulert RFID-skudd: {test_rfid}")
-    return redirect("/")
-
-@app.route("/link_rfid", methods=["POST"])
-def link_rfid():
-    song_id = request.form["song_id"]
-    songs = load_songs()
-    rfid = songs.get("last_read_rfid")
-    if not rfid:
-        append_log("⚠️ Ingen RFID skannet")
-        return redirect("/")
-
-    for sid, info in songs.items():
-        if sid == "last_read_rfid":
-            continue
-        if isinstance(info, dict) and info.get("rfid") == rfid and sid != song_id:
-            append_log("⚠️ RFID allerede i bruk")
-            return redirect("/")
-
-    songs[song_id]["rfid"] = rfid
-    append_log(f"🔗 Knyttet RFID {rfid} til {songs[song_id].get('title', song_id)}")
-    save_songs(songs)
-    return redirect("/")
-
-@app.route("/unlink_rfid", methods=["POST"])
-def unlink_rfid():
-    song_id = request.form["song_id"]
-    songs = load_songs()
-    if "rfid" in songs.get(song_id, {}):
-        del songs[song_id]["rfid"]
-        append_log(f"🚫 Fjernet RFID fra {songs[song_id].get('title', song_id)}")
-        save_songs(songs)
-    return redirect("/")
-
-@app.route("/log")
-def get_log():
-    return jsonify(load_log())
-
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) == 3 and sys.argv[1] == "--download":
-        sid = sys.argv[2]
-        songs = load_songs()
-        if sid in songs:
-            url = songs[sid].get("url")
-            if is_youtube_playlist(url):
-                download_youtube_playlist(sid, url)
-            else:
-                # fallback for vanlige sanger
-                download_youtube_playlist(sid, url)  # TODO: Rename to download_song()
-    else:
-        app.run(host="0.0.0.0", port=5000)
