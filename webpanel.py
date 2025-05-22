@@ -102,7 +102,7 @@ def add_url():
     songs[song_id] = {"url": url, "status": "downloading", "type": song_type}
     save_songs(songs)
 
-    # 🔽 Denne linjen er ny og korrekt
+    
     append_log(f"🆕 Nå er en ny {'liste' if song_type == 'playlist' else 'sang'} registrert: {url}")
 
     subprocess.Popen(["python3", __file__, "--download", song_id])
