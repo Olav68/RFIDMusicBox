@@ -1,8 +1,9 @@
-
+#Utils for RFIDMusicBox
 import os
 import json
 import subprocess
 from datetime import datetime
+from urllib.parse import urlparse, parse_qs
 
 def append_log(entry, log_file="/home/magic/programmer/RFIDMusicBox/activity_log.json", max_lines=100):
     try:
@@ -72,8 +73,11 @@ def play_song(filepath):
         append_log(f"❌ Feil ved avspilling i play_song(): {e}")
 
 def is_youtube_playlist(url):
-    # Hvis den inneholder en `list=`-parameter, er det en spilleliste
-    return "list=" in url and "youtube.com" in url
+    try:
+        query = parse_qs(urlparse(url).query)
+        return "list" in query
+    except Exception:
+        return False
 
 def download_youtube_playlist(url, target_folder):
     try:
