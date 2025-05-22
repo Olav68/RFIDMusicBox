@@ -3,7 +3,6 @@ import json
 import subprocess
 from datetime import datetime
 
-
 def append_log(entry, log_file="/home/magic/programmer/RFIDMusicBox/activity_log.json", max_lines=100):
     try:
         if os.path.exists(log_file):
@@ -53,19 +52,40 @@ def save_songs(songs, song_file="/home/magic/programmer/RFIDMusicBox/songs.json"
         print(f"❌ Feil ved lagring av sanger: {e}")
 
 def play_song(filepath):
-    append_log(f"▶ Forbereder å spille: {filepath}")
+    append_log(f"Starter å spille: {filepath}")
 
     if not os.path.exists(filepath):
         append_log(f"❌ Fil ikke funnet: {filepath}")
         return
 
-    subprocess.call(["pkill", "-f", "mpv"])
-    append_log("🔇 Tidligere mpv-prosess stoppet")
-
     try:
+        # Stopp forrige mpv hvis den kjører
+        subprocess.call(["pkill", "-f", "mpv"])
+        append_log("🔇 Tidligere mpv-prosess stoppet")
+
+        # Start mpv med alsa direkte
         subprocess.Popen([
             "mpv", "--ao=alsa", "--no-video", "--force-window=no", filepath
-        ])
+        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
         append_log(f"▶ mpv startet via ALSA: {filepath}")
     except Exception as e:
-        append_log(f"❌ Feil ved avspilling: {e}")
+        append_log(f"❌ Feil ved avspilling i play_song(): {e}")
+
+def is_youtube_playlist(url):
+    return "youtube.com/playlist?list=" in url or "&list=" in url
+
+def download_youtube_playlist(url, target_folder):
+    try:
+        os.makedirs(target_folder, exist_ok=True)
+        cmd = [
+            "yt-dlp",
+            "-x", "--audio-format", "mp3",
+            url,
+            "-o", os.path.join(target_folder, "%(title)s.%(ext)s")
+        ]
+        result = subprocess.run(cmd)
+        return result.returncode == 0
+    except Exception as e:
+        append_log(f"❌ Feil ved nedlasting av spilleliste: {e}")
+        return False

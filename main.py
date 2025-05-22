@@ -1,4 +1,4 @@
-# main.py – Lytter til RFID og spiller sang via utils.play_song
+# main.py – Lytter til RFID og spiller sang eller spilleliste via utils.play_song
 import os
 from evdev import InputDevice, categorize, ecodes, list_devices
 from utils import append_log, load_songs, play_song
@@ -48,13 +48,27 @@ if __name__ == "__main__":
                     found = False
                     for sid, song in songs.items():
                         if isinstance(song, dict) and song.get("rfid") == rfid:
-                            filename = song.get("filename")
-                            if not filename:
-                                append_log(f"❌ Ingen filnavn for sang: {song.get('title', sid)}")
-                                break
-                            filepath = os.path.join(STORAGE_DIR, filename)
-                            append_log(f"▶ Spiller: {song.get('title', sid)} ({filepath})")
-                            play_song(filepath)
+                            if "playlist_dir" in song:
+                                playlist_path = os.path.join(STORAGE_DIR, song["playlist_dir"])
+                                if os.path.isdir(playlist_path):
+                                    mp3_files = sorted([
+                                        os.path.join(playlist_path, f)
+                                        for f in os.listdir(playlist_path)
+                                        if f.endswith(".mp3")
+                                    ])
+                                    append_log(f"▶ Spiller spilleliste: {song.get('title', sid)}")
+                                    for file in mp3_files:
+                                        play_song(file)
+                                else:
+                                    append_log(f"❌ Mappen finnes ikke: {playlist_path}")
+                            else:
+                                filename = song.get("filename")
+                                if not filename:
+                                    append_log(f"❌ Ingen filnavn for sang: {song.get('title', sid)}")
+                                    break
+                                filepath = os.path.join(STORAGE_DIR, filename)
+                                append_log(f"▶ Spiller: {song.get('title', sid)} ({filepath})")
+                                play_song(filepath)
                             found = True
                             break
                     if not found:
