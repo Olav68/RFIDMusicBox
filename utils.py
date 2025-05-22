@@ -72,7 +72,7 @@ def play_song(filepath):
         append_log(f"❌ Feil ved avspilling i play_song(): {e}")
 
 def is_youtube_playlist(url):
-    return "youtube.com/playlist?list=" in url or "&list=" in url
+    return "list=" in url
 
 def download_youtube_playlist(url, target_folder):
     try:
