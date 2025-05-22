@@ -43,11 +43,10 @@ def status():
         elif match.get("type") == "playlist" and "playlist_dir" in match:
             folder_path = os.path.join(STORAGE_DIR, match["playlist_dir"])
             valid = os.path.exists(folder_path) and any(f.endswith(".mp3") for f in os.listdir(folder_path))
-    status = {
+    return jsonify({
         "rfid": rfid,
         "status": "ready" if valid else "missing"
-    }
-    return jsonify(status)
+    })
 
 def download_song(song_id, url):
     songs = load_songs()
@@ -77,7 +76,6 @@ def download_song(song_id, url):
         else:
             songs[song_id]["status"] = "error"
             append_log(f"❌ Nedlasting feilet: {url}")
-
     save_songs(songs)
 
 @app.route("/")
@@ -102,10 +100,8 @@ def add_url():
     songs[song_id] = {"url": url, "status": "downloading", "type": song_type}
     save_songs(songs)
 
-    
     append_log(f"🆕 Nå er en ny {'liste' if song_type == 'playlist' else 'sang'} registrert: {url}")
-
-    subprocess.Popen(["python3", "/home/magic/programmer/RFIDMusicBox/webpanel.py", "--download", song_id])
+    subprocess.Popen(["python3", __file__, "--download", song_id])
     return redirect("/")
 
 @app.route("/play", methods=["POST"])
@@ -131,3 +127,15 @@ def play_song_route():
             append_log(f"❌ Fil ikke funnet: {filepath}")
 
     return redirect("/")
+
+# 🔽 Viktig: sørg for at Flask starter hvis ikke --download kjøres
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) == 3 and sys.argv[1] == "--download":
+        sid = sys.argv[2]
+        songs = load_songs()
+        if sid in songs:
+            download_song(sid, songs[sid]["url"])
+    else:
+        append_log("🌍 Starter webpanel på port 5000")
+        app.run(host="0.0.0.0", port=5000)
