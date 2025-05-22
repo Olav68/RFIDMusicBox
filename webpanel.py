@@ -95,12 +95,15 @@ def add_url():
     if not is_valid_url(url):
         append_log("❌ Ugyldig URL lagt inn")
         return redirect("/")
+
     song_id = str(int(datetime.now().timestamp() * 1000))
     songs = load_songs()
     song_type = "playlist" if is_youtube_playlist(url) else "song"
     songs[song_id] = {"url": url, "status": "downloading", "type": song_type}
     save_songs(songs)
-    append_log("🆕 Ny sang eller liste registrert")
+
+    append_log(f"🆕 Ny {'liste' if song_type == 'playlist' else 'sang'} registrert: {url}")
+
     subprocess.Popen(["python3", __file__, "--download", song_id])
     return redirect("/")
 
