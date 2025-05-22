@@ -105,7 +105,7 @@ def add_url():
     
     append_log(f"🆕 Nå er en ny {'liste' if song_type == 'playlist' else 'sang'} registrert: {url}")
 
-    subprocess.Popen(["python3", __file__, "--download", song_id])
+    subprocess.Popen(["python3", "/home/magic/programmer/RFIDMusicBox/webpanel.py", "--download", song_id])
     return redirect("/")
 
 @app.route("/play", methods=["POST"])
