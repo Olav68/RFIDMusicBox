@@ -1,4 +1,5 @@
 # main.py – Lytter til RFID og spiller sang via utils.play_song
+# med spillelistefunksjonalitet
 import os
 from evdev import InputDevice, categorize, ecodes, list_devices
 from utils import append_log, load_songs, play_song
