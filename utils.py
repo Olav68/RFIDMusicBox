@@ -74,8 +74,9 @@ def play_song(filepath):
 
 def is_youtube_playlist(url):
     try:
-        query = parse_qs(urlparse(url).query)
-        return "list" in query
+        parsed = urlparse(url)
+        query = parse_qs(parsed.query)
+        return "list" in query and query["list"][0].startswith("PL")
     except Exception:
         return False
 
