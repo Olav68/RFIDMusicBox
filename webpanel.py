@@ -11,7 +11,8 @@ from utils import (
     save_songs,
     play_song,
     is_youtube_playlist,
-    download_youtube_playlist
+    download_youtube_playlist,
+    play_playlist
 )
 
 app = Flask(__name__)
@@ -116,8 +117,7 @@ def play_song_route():
     if song.get("type") == "playlist" and "playlist_dir" in song:
         folder = os.path.join(STORAGE_DIR, song["playlist_dir"])
         files = sorted(f for f in os.listdir(folder) if f.endswith(".mp3"))
-        for file in files:
-            play_song(os.path.join(folder, file))
+        play_playlist(folder)
     elif song.get("type") == "song" and "filename" in song:
         filepath = os.path.join(STORAGE_DIR, song["filename"])
         if os.path.exists(filepath):

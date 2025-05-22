@@ -94,3 +94,14 @@ def download_youtube_playlist(url, target_folder):
     except Exception as e:
         append_log(f"❌ Feil ved nedlasting av spilleliste: {e}")
         return False
+
+def play_playlist(folder):
+    if not os.path.exists(folder):
+        append_log(f"❌ Spilleliste-mappe ikke funnet: {folder}")
+        return
+    mp3_files = sorted([f for f in os.listdir(folder) if f.endswith(".mp3")])
+    append_log(f"▶ Starter spilleliste med {len(mp3_files)} filer: {folder}")
+    for mp3 in mp3_files:
+        filepath = os.path.join(folder, mp3)
+        append_log(f"▶ Spiller fra liste: {mp3}")
+        play_song(filepath)
