@@ -89,18 +89,32 @@ def index():
     log = load_log()
     return render_template("index.html", songs=songs, ip=ip, ip_address=ip_address, log=log)
 
-@app.route("/add_url", methods=["POST"])
+@@app.route("/add_url", methods=["POST"])
 def add_url():
     url = request.form["url"].strip()
     if not is_valid_url(url):
         append_log("❌ Ugyldig URL lagt inn")
         return redirect("/")
+    
     song_id = str(int(datetime.now().timestamp() * 1000))
     songs = load_songs()
-    song_type = "playlist" if is_youtube_playlist(url) else "song"
-    songs[song_id] = {"url": url, "status": "downloading", "type": song_type}
+
+    is_playlist = is_youtube_playlist(url)
+    entry_type = "playlist" if is_playlist else "song"
+
+    songs[song_id] = {
+        "url": url,
+        "status": "downloading",
+        "type": entry_type
+    }
+
     save_songs(songs)
-    append_log("🆕 Ny sang eller liste registrert")
+
+    if is_playlist:
+        append_log("🆕 Ny **liste** registrert")
+    else:
+        append_log("🆕 Ny **sang** registrert")
+
     subprocess.Popen(["python3", __file__, "--download", song_id])
     return redirect("/")
 
