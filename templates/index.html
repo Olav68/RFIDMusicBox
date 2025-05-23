@@ -72,7 +72,7 @@ updateRFIDStatus();
 </button>
 </form>
 
-<<form method="post" action="/set_default_device" style="margin-top: 1em;">
+<form method="post" action="/set_default_device" style="margin-top: 1em;">
   <label for="device_name">Velg standard lydenhet:</label>
   <select name="device_name">
     {% for device in audio_devices %}
@@ -82,7 +82,7 @@ updateRFIDStatus();
     {% endfor %}
   </select>
   <button type="submit">💾 Lagre som standard lydenhet</button>
-</form
+</form>
 
 <form action="/set_volume" method="post" style="margin-top: 1em;">
     <label for="volume">Volum (%):</label>

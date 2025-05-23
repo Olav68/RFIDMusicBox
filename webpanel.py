@@ -13,8 +13,8 @@ from utils import (
     is_youtube_playlist,
     download_youtube_playlist,
     play_playlist,
-    list_audio_devices_with_friendly_names as list_audio_devices, 
-    get_current_audio_card
+    list_audio_devices_with_friendly_names as list_audio_devices,
+    get_current_default_sink  # ← riktig funksjon her
 )
 
 #13:11
