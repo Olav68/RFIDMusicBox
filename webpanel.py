@@ -46,10 +46,9 @@ def index():
     hostname = socket.gethostname()
     ip_address = socket.gethostbyname(hostname)
     log = load_log()
-    audio_devices = list_audio_devices()
-    current_card = get_current_audio_card()  # 🔊
-    return render_template("index.html", songs=songs, ip=ip, ip_address=ip_address, log=log,
-                           audio_devices=audio_devices, current_card=current_card)
+    audio_devices = list_audio_devices_with_friendly_names()
+    current_sink = get_current_default_sink()
+    return render_template("index.html", ..., audio_devices=audio_devices, current_sink=current_sink)
 
 @app.route("/set_default_device", methods=["POST"])
 def set_default_device():
