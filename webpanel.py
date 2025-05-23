@@ -39,7 +39,7 @@ def edit_title():
 
     return redirect("/")
 
-@@app.route("/")
+@app.route("/")
 def index():
     songs = load_songs()
     ip = request.host
