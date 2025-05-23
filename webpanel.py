@@ -13,7 +13,7 @@ from utils import (
     is_youtube_playlist,
     download_youtube_playlist,
     play_playlist,
-    list_audio_devices, 
+    list_audio_devices_with_friendly_names as list_audio_devices, 
     get_current_audio_card
 )
 
@@ -38,11 +38,10 @@ def index():
 
 @app.route("/set_default_device", methods=["POST"])
 def set_default_device():
-    card = request.form.get("device_card")
+    sink_name = request.form.get("device_name")
     try:
-        from utils import update_default_audio_device
-        update_default_audio_device(int(card))
-        append_log(f"🔊 Standard lydenhet satt til kort {card}")
+        subprocess.run(["pactl", "set-default-sink", sink_name], check=True)
+        append_log(f"🔊 Standard lydenhet satt til: {sink_name}")
     except Exception as e:
         append_log(f"❌ Feil ved setting av lydenhet: {e}")
     return redirect("/")

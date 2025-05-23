@@ -6,6 +6,32 @@ import subprocess
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 
+def list_audio_devices_with_friendly_names():
+    try:
+        result = subprocess.run(["pactl", "list", "sinks"], capture_output=True, text=True)
+        output = result.stdout
+
+        devices = []
+        current = {}
+        for line in output.splitlines():
+            line = line.strip()
+            if line.startswith("Sink #"):
+                if current:
+                    devices.append(current)
+                current = {}
+            elif line.startswith("Name:"):
+                current["name"] = line.split("Name:")[1].strip()
+            elif line.startswith("Description:"):
+                current["friendly"] = line.split("Description:")[1].strip()
+
+        if current:
+            devices.append(current)
+
+        return devices
+    except Exception as e:
+        append_log(f"❌ Klarte ikke hente lydutganger: {e}")
+        return []
+
 def get_current_audio_card():
     try:
         asoundrc_path = os.path.expanduser("~/.asoundrc")
