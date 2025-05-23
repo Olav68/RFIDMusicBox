@@ -6,6 +6,17 @@ import subprocess
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 
+def get_current_audio_card():
+    try:
+        asoundrc_path = os.path.expanduser("~/.asoundrc")
+        with open(asoundrc_path, "r") as f:
+            for line in f:
+                if line.strip().startswith("defaults.pcm.card"):
+                    return line.strip().split()[-1]
+    except:
+        pass
+    return None  # fallback hvis ikke satt
+
 def list_audio_devices():
     try:
         result = subprocess.run(["aplay", "-l"], capture_output=True, text=True)

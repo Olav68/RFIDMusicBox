@@ -13,7 +13,8 @@ from utils import (
     is_youtube_playlist,
     download_youtube_playlist,
     play_playlist,
-    list_audio_devices
+    list_audio_devices, 
+    get_current_audio_card
 )
 
 #13:11
@@ -30,8 +31,10 @@ def index():
     hostname = socket.gethostname()
     ip_address = socket.gethostbyname(hostname)
     log = load_log()
-    audio_devices = list_audio_devices()  # 🔊 inkluder dette
-    return render_template("index.html", songs=songs, ip=ip, ip_address=ip_address, log=log, audio_devices=audio_devices)
+    audio_devices = list_audio_devices()
+    current_card = get_current_audio_card()  # 🔊
+    return render_template("index.html", songs=songs, ip=ip, ip_address=ip_address, log=log,
+                           audio_devices=audio_devices, current_card=current_card)
 
 @app.route("/set_default_device", methods=["POST"])
 def set_default_device():
