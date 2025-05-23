@@ -54,17 +54,15 @@ updateRFIDStatus();
 <form action="/add_url" method="post">
     <label for="url">Lim inn YouTube URL (Sjekk om URL inneholder ordet "list" dersom det er en spilleliste):</label><br>
     <input type="text" id="url" name="url" required style="width: 60%">
-  
-    <button class="button-new" type="submit">Legg til sang</button>
       <button type="submit">💾 Legg til ny sang</button>
 </form>
-
+<!--
 <form action="/simulate_rfid" method="post" style="margin-top:1em;">
     <label for="rfid">Test RFID:</label>
     <input type="text" name="rfid" required>
     <button type="submit">🧪 Simuler RFID-skudd</button>
 </form>
-
+-->
 <p><strong>IP-adresse:</strong> <code>{{ ip }}</code> eller <code>http://magicmusic.local</code></p>
 
 
