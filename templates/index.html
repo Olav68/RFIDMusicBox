@@ -101,7 +101,19 @@ updateRFIDStatus();
     <tbody>
     {% for sid, song in songs.items() if sid != 'last_read_rfid' %}
         <tr>
-            <td>{{ song.title if 'title' in song else 'Ukjent' }}</td>
+            <td>
+  {% if request.args.get('edit') == sid %}
+    <form method="post" action="/edit_title" style="display: inline;">
+      <input type="hidden" name="song_id" value="{{ sid }}">
+      <input type="text" name="new_title" value="{{ song.title }}" required>
+      <button type="submit">💾</button>
+      <a href="/">❌</a>
+    </form>
+  {% else %}
+    {{ song.title if 'title' in song else 'Ukjent' }}
+    <a href="/?edit={{ sid }}">✏️</a>
+  {% endif %}
+</td>
             <td><a href="{{ song.url }}" target="_blank">Link</a></td>
             <td class="{{ song.status }}">
                 {{ '✅ Klar' if song.status == 'ready' else '⏳ Henter' if song.status == 'downloading' else '❌ Feil' }}

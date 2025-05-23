@@ -24,6 +24,21 @@ STORAGE_DIR = "/home/magic/programmer/RFIDMusicBox/mp3"
 SONGS_FILE = "/home/magic/programmer/RFIDMusicBox/songs.json"
 MUSIC_DIR = "/home/magic/programmer/RFIDMusicBox/music"
 
+@app.route("/edit_title", methods=["POST"])
+def edit_title():
+    song_id = request.form.get("song_id")
+    new_title = request.form.get("new_title", "").strip()
+
+    songs = load_songs()
+    if song_id in songs and new_title:
+        songs[song_id]["title"] = new_title
+        save_songs(songs)
+        append_log(f"✏️ Endret tittel på {song_id} til: {new_title}")
+    else:
+        append_log(f"❌ Kunne ikke endre tittel (ID: {song_id})")
+
+    return redirect("/")
+
 @app.route("/")
 def index():
     songs = load_songs()
