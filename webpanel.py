@@ -15,6 +15,7 @@ from utils import (
     play_playlist
 )
 
+#13:11
 app = Flask(__name__)
 
 STORAGE_DIR = "/home/magic/programmer/RFIDMusicBox/mp3"
@@ -158,7 +159,7 @@ def stop_song():
 def set_volume():
     try:
         volume = int(request.form.get("volume", 0))
-        if 0 <= volume <= 100:
+        if 0 <= volume <= 150:
             subprocess.run(["amixer", "sset", "Master", f"{volume}%"], check=True)
             append_log(f"🔊 Volum satt til {volume}%")
             return redirect(url_for("index"))
@@ -169,7 +170,7 @@ def set_volume():
         append_log(f"❌ Feil ved setting av volum: {e}")
         return f"Feil: {e}", 500
 
-# 🔽 Viktig: sørg for at Flask starter hvis ikke --download kjøres
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) == 3 and sys.argv[1] == "--download":
