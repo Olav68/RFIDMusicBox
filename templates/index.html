@@ -65,6 +65,9 @@ updateRFIDStatus();
 -->
 <p><strong>IP-adresse:</strong> <code>{{ ip }}</code> eller <code>http://magicmusic.local</code></p>
 
+<p><strong>Aktiv lydenhet:</strong>
+  {{ current_sink_friendly if current_sink_friendly else current_sink }}
+</p>
 
 <form method="post" action="/stop" style="margin-top: 1em;">
   <button type="submit" style="background: red; color: white; padding: 0.6em 1em; font-size: 1.2em; border: none; border-radius: 6px;">

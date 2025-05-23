@@ -39,16 +39,32 @@ def edit_title():
 
     return redirect("/")
 
-@app.route("/")
+@@app.route("/")
 def index():
     songs = load_songs()
     ip = request.host
     hostname = socket.gethostname()
     ip_address = socket.gethostbyname(hostname)
     log = load_log()
-    audio_devices = list_audio_devices_with_friendly_names()
+    audio_devices = list_audio_devices()
     current_sink = get_current_default_sink()
-    return render_template("index.html", ..., audio_devices=audio_devices, current_sink=current_sink)
+
+    # 🔍 Slå opp friendly name
+    current_sink_friendly = None
+    for device in audio_devices:
+        if device.get("name") == current_sink:
+            current_sink_friendly = device.get("friendly")
+            break
+
+    return render_template("index.html",
+        songs=songs,
+        ip=ip,
+        ip_address=ip_address,
+        log=log,
+        audio_devices=audio_devices,
+        current_sink=current_sink,
+        current_sink_friendly=current_sink_friendly
+    )
 
 @app.route("/set_default_device", methods=["POST"])
 def set_default_device():
