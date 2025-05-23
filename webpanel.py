@@ -170,6 +170,24 @@ def set_volume():
         append_log(f"❌ Feil ved setting av volum: {e}")
         return f"Feil: {e}", 500
 
+@app.route("/link_rfid", methods=["POST"])
+def link_rfid():
+    song_id = request.form["song_id"]
+    songs = load_songs()
+    rfid = songs.get("last_read_rfid")
+
+    if not rfid:
+        append_log("⚠️ Ingen RFID skannet ennå.")
+        return redirect("/")
+
+    if song_id not in songs:
+        append_log(f"❌ Ugyldig song_id: {song_id}")
+        return redirect("/")
+
+    songs[song_id]["rfid"] = rfid
+    append_log(f"🔗 Knyttet RFID {rfid} til sang: {songs[song_id].get('title', 'Ukjent')}")
+    save_songs(songs)
+    return redirect("/")
 
 if __name__ == "__main__":
     import sys
