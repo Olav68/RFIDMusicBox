@@ -154,6 +154,21 @@ def stop_song():
     append_log("⏹ Stoppet avspilling")
     return redirect("/")
 
+@app.route("/set_volume", methods=["POST"])
+def set_volume():
+    try:
+        volume = int(request.form.get("volume", 0))
+        if 0 <= volume <= 100:
+            subprocess.run(["amixer", "sset", "Master", f"{volume}%"], check=True)
+            append_log(f"🔊 Volum satt til {volume}%")
+            return redirect(url_for("index"))
+        else:
+            append_log(f"⚠️ Ugyldig volumverdi: {volume}")
+            return "Ugyldig volumverdi", 400
+    except Exception as e:
+        append_log(f"❌ Feil ved setting av volum: {e}")
+        return f"Feil: {e}", 500
+
 # 🔽 Viktig: sørg for at Flask starter hvis ikke --download kjøres
 if __name__ == "__main__":
     import sys
