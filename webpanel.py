@@ -128,6 +128,32 @@ def play_song_route():
 
     return redirect("/")
 
+@app.route("/delete_song", methods=["POST"])
+def delete_song():
+    song_id = request.form["song_id"]
+    songs = load_songs()
+    song = songs.get(song_id)
+
+    # Slett MP3-fil hvis den finnes
+    if song and "filename" in song:
+        filepath = os.path.join(STORAGE_DIR, song["filename"])
+        if os.path.exists(filepath):
+            os.remove(filepath)
+    
+    # Slett sang fra listen
+    if song_id in songs:
+        append_log(f"🗑 Slettet sang: {songs[song_id].get('title', song_id)}")
+        del songs[song_id]
+        save_songs(songs)
+
+    return redirect("/")
+
+@app.route("/stop", methods=["POST"])
+def stop_song():
+    subprocess.run(["pkill", "-f", "mpv"])
+    append_log("⏹ Stoppet avspilling")
+    return redirect("/")
+
 # 🔽 Viktig: sørg for at Flask starter hvis ikke --download kjøres
 if __name__ == "__main__":
     import sys
