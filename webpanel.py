@@ -70,11 +70,14 @@ def index():
 def set_default_device():
     sink_name = request.form.get("device_name")
     try:
+        subprocess.run(["pkill", "-f", "mpv"])  # 🔇 Stopp aktiv avspilling før bytte
         subprocess.run(["pactl", "set-default-sink", sink_name], check=True)
         append_log(f"🔊 Standard lydenhet satt til: {sink_name}")
     except Exception as e:
         append_log(f"❌ Feil ved setting av lydenhet: {e}")
     return redirect("/")
+
+
 
 def is_valid_url(url):
     return url.startswith("http") and (
