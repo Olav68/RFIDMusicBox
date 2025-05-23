@@ -1,9 +1,43 @@
 #Utils for RFIDMusicBox
 import os
 import json
+import re
 import subprocess
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
+
+def list_audio_devices():
+    try:
+        result = subprocess.run(["aplay", "-l"], capture_output=True, text=True)
+        output = result.stdout
+
+        devices = []
+        for line in output.splitlines():
+            match = re.match(r"card (\d+): (\S+) \[(.+?)\], device (\d+): (.+?) \[(.+?)\]", line)
+            if match:
+                card = match.group(1)
+                description = match.group(3)
+                devices.append({
+                    "card": card,
+                    "name": description
+                })
+        return devices
+    except Exception as e:
+        append_log(f"❌ Klarte ikke hente lydenheter: {e}")
+        return []
+
+def update_default_audio_device(card_number):
+    try:
+        asoundrc_path = os.path.expanduser("~/.asoundrc")
+        content = f"""
+defaults.pcm.card {card_number}
+defaults.ctl.card {card_number}
+"""
+        with open(asoundrc_path, "w") as f:
+            f.write(content.strip())
+        append_log(f"🎚 Oppdaterte standard lydenhet til kort {card_number}")
+    except Exception as e:
+        append_log(f"❌ Klarte ikke oppdatere .asoundrc: {e}")
 
 def append_log(entry, log_file="/home/magic/programmer/RFIDMusicBox/activity_log.json", max_lines=100):
     try:

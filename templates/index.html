@@ -52,7 +52,7 @@ updateRFIDStatus();
 <h1>Ola's magiske spilleboks</h1>
 
 <form action="/add_url" method="post">
-    <label for="url">Lim inn YouTube URL:</label><br>
+    <label for="url">Lim inn YouTube URL (Sjekk om URL inneholder ordet "list" dersom det er en spilleliste):</label><br>
     <input type="text" id="url" name="url" required style="width: 60%">
     <button class="button-new" type="submit">Legg til sang</button>
 </form>
@@ -68,6 +68,16 @@ updateRFIDStatus();
 
 <form method="post" action="/stop" style="margin-top: 1em;">
   <button type="submit">⏹️ Stopp avspilling</button>
+</form>
+
+<form method="post" action="/set_default_device" style="margin-top: 1em;">
+  <label for="device_card">Velg standard lydenhet:</label>
+  <select name="device_card">
+    {% for device in audio_devices %}
+      <option value="{{ device.card }}">{{ device.card }} – {{ device.name }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit">💾 Lagre som standard</button>
 </form>
 
 <form action="/set_volume" method="post" style="margin-top: 1em;">

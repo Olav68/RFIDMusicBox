@@ -12,7 +12,8 @@ from utils import (
     play_song,
     is_youtube_playlist,
     download_youtube_playlist,
-    play_playlist
+    play_playlist,
+    list_audio_devices
 )
 
 #13:11
@@ -21,6 +22,27 @@ app = Flask(__name__)
 STORAGE_DIR = "/home/magic/programmer/RFIDMusicBox/mp3"
 SONGS_FILE = "/home/magic/programmer/RFIDMusicBox/songs.json"
 MUSIC_DIR = "/home/magic/programmer/RFIDMusicBox/music"
+
+@app.route("/")
+def index():
+    songs = load_songs()
+    ip = request.host
+    hostname = socket.gethostname()
+    ip_address = socket.gethostbyname(hostname)
+    log = load_log()
+    audio_devices = list_audio_devices()  # 🔊 inkluder dette
+    return render_template("index.html", songs=songs, ip=ip, ip_address=ip_address, log=log, audio_devices=audio_devices)
+
+@app.route("/set_default_device", methods=["POST"])
+def set_default_device():
+    card = request.form.get("device_card")
+    try:
+        from utils import update_default_audio_device
+        update_default_audio_device(int(card))
+        append_log(f"🔊 Standard lydenhet satt til kort {card}")
+    except Exception as e:
+        append_log(f"❌ Feil ved setting av lydenhet: {e}")
+    return redirect("/")
 
 def is_valid_url(url):
     return url.startswith("http") and (
@@ -83,15 +105,6 @@ def download_song(song_id, url):
             songs[song_id]["status"] = "error"
             append_log(f"❌ Nedlasting feilet: {url}")
     save_songs(songs)
-
-@app.route("/")
-def index():
-    songs = load_songs()
-    ip = request.host
-    hostname = socket.gethostname()
-    ip_address = socket.gethostbyname(hostname)
-    log = load_log()
-    return render_template("index.html", songs=songs, ip=ip, ip_address=ip_address, log=log)
 
 @app.route("/add_url", methods=["POST"])
 def add_url():
