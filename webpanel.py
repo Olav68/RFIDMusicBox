@@ -50,6 +50,10 @@ def status():
         "status": "ready" if valid else "missing"
     })
 
+@app.route("/log")
+def log():
+    return jsonify(load_log())
+
 def download_song(song_id, url):
     songs = load_songs()
     if is_youtube_playlist(url):
@@ -110,22 +114,21 @@ def add_url():
 def play_song_route():
     song_id = request.form["song_id"]
     songs = load_songs()
+
     if song_id not in songs:
         append_log(f"❌ Ugyldig song_id: {song_id}")
         return redirect("/")
 
     song = songs[song_id]
+
     if song.get("type") == "playlist" and "playlist_dir" in song:
         folder = os.path.join(STORAGE_DIR, song["playlist_dir"])
-        files = sorted(f for f in os.listdir(folder) if f.endswith(".mp3"))
         play_playlist(folder)
     elif song.get("type") == "song" and "filename" in song:
         filepath = os.path.join(STORAGE_DIR, song["filename"])
-        if os.path.exists(filepath):
-            play_song(filepath)
-            append_log(f"▶ Spiller: {song.get('title', filepath)}")
-        else:
-            append_log(f"❌ Fil ikke funnet: {filepath}")
+        play_song(filepath)
+    else:
+        append_log("⚠️ Ukjent sangtype eller mangler fil/dir")
 
     return redirect("/")
 
