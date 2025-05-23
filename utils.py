@@ -23,14 +23,20 @@ def list_audio_devices_with_friendly_names():
                 current["name"] = line.split("Name:")[1].strip()
             elif line.startswith("Description:"):
                 current["friendly"] = line.split("Description:")[1].strip()
-
         if current:
             devices.append(current)
-
         return devices
     except Exception as e:
         append_log(f"❌ Klarte ikke hente lydutganger: {e}")
         return []
+
+def get_current_default_sink():
+    try:
+        result = subprocess.run(["pactl", "get-default-sink"], capture_output=True, text=True)
+        return result.stdout.strip()
+    except Exception as e:
+        append_log(f"❌ Klarte ikke hente aktiv lydenhet: {e}")
+        return None
 
 def get_current_audio_card():
     try:
