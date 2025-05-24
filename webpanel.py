@@ -240,6 +240,16 @@ def link_rfid():
     save_songs(songs)
     return redirect("/")
 
+@app.route("/unlink_rfid", methods=["POST"])
+def unlink_rfid():
+    song_id = request.form["song_id"]
+    songs = load_songs()
+    if "rfid" in songs.get(song_id, {}):
+        del songs[song_id]["rfid"]
+        append_log(f"🚫 Fjernet RFID fra {songs[song_id].get('title', song_id)}")
+        save_songs(songs)
+    return redirect("/")
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) == 3 and sys.argv[1] == "--download":
