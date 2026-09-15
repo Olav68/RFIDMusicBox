@@ -8,6 +8,7 @@ from datetime import datetime
 from utils import (
     append_log,
     load_log,
+    clear_log,
     load_songs,
     save_songs,
     play_song,
@@ -199,6 +200,12 @@ def update_from_git():
     # HTTP-forespørselen henge og vente.
     append_log("🔄 Starter full oppdatering (kode, avhengigheter, systempakker) - dette kan ta noen minutter...")
     subprocess.Popen(["python3", __file__, "--full-update"])
+    return redirect("/")
+
+@app.route("/clear_log", methods=["POST"])
+def clear_log_route():
+    clear_log()
+    append_log("🧹 Aktivitetsloggen ble tømt")
     return redirect("/")
 
 def get_connected_ssid():

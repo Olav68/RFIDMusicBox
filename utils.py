@@ -81,6 +81,15 @@ def load_log(log_file="/home/magic/programmer/RFIDMusicBox/activity_log.json"):
                 return []
     return []
 
+def clear_log(log_file="/home/magic/programmer/RFIDMusicBox/activity_log.json"):
+    try:
+        with open(log_file, "w") as f:
+            json.dump([], f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+    except Exception as e:
+        print(f"❌ Feil ved tømming av logg: {e}")
+
 def load_songs(song_file="/home/magic/programmer/RFIDMusicBox/songs.json"):
     if os.path.exists(song_file):
         with open(song_file, "r") as f:

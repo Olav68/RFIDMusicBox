@@ -145,6 +145,10 @@ updateRFIDStatus();
         onsubmit="return confirm('Oppdatere kode, Python-avhengigheter og systempakker? Dette kan ta noen minutter, og Pi-en restarter automatisk etterpå hvis noe ble oppdatert.');">
     <button class="btn btn-default" type="submit">🔄 Oppdater app</button>
   </form>
+  <form method="post" action="/clear_log" style="margin: 0;"
+        onsubmit="return confirm('Tømme hele aktivitetsloggen? Dette kan ikke angres.');">
+    <button class="btn btn-default" type="submit">🧹 Slett logg</button>
+  </form>
 </div>
 
 <form method="post" action="/set_default_device" style="margin-top: 1em;">
