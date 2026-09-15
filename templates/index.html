@@ -60,6 +60,11 @@ updateRFIDStatus();
 
 <p><a href="/help">📖 Bruksanvisning</a> · <a href="/wifi">📶 WiFi-innstillinger</a></p>
 
+<form method="post" action="/update" style="margin-top: 1em;"
+      onsubmit="return confirm('Sjekke etter oppdatert kode? Hvis det finnes en ny versjon, restartes Pi-en automatisk for å ta den i bruk.');">
+  <button class="button-new" type="submit">🔄 Sjekk etter oppdatering</button>
+</form>
+
 <p><strong>Aktiv lydenhet:</strong>
   {{ current_sink_friendly if current_sink_friendly else current_sink }}
 </p>

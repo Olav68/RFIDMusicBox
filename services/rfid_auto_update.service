@@ -1,0 +1,16 @@
+[Unit]
+Description=RFID MusicBox - sjekker etter oppdatert kode fra git ved oppstart
+After=network-online.target
+Wants=network-online.target
+Before=rfid_webpanel.service rfid_trigger_listener.service rfid_input_listener.service rfid_wifi_watchdog.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /home/magic/programmer/RFIDMusicBox/scripts/git_update.sh
+WorkingDirectory=/home/magic/programmer/RFIDMusicBox
+User=magic
+Environment=PYTHONUNBUFFERED=1
+TimeoutStartSec=30
+
+[Install]
+WantedBy=multi-user.target

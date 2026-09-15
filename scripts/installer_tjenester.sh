@@ -26,7 +26,7 @@ fi
 
 # Stopper og deaktiverer gamle tjenester
 echo "🧹 Stopper gamle tjenester (hvis de kjører)..."
-for SERVICE in rfid_webpanel rfid_trigger_listener rfid_input_listener rfid_wifi_watchdog; do
+for SERVICE in rfid_webpanel rfid_trigger_listener rfid_input_listener rfid_wifi_watchdog rfid_auto_update; do
   sudo systemctl stop "$SERVICE" 2>/dev/null
   sudo systemctl disable "$SERVICE" 2>/dev/null
 done
@@ -48,7 +48,7 @@ sudo systemctl daemon-reexec
 sudo systemctl daemon-reload
 
 # Aktiver og start tjenestene
-for SERVICE in rfid_webpanel rfid_trigger_listener rfid_input_listener rfid_wifi_watchdog; do
+for SERVICE in rfid_webpanel rfid_trigger_listener rfid_input_listener rfid_wifi_watchdog rfid_auto_update; do
   if [ -f "/etc/systemd/system/${SERVICE}.service" ]; then
     echo "✅ Aktiverer og restarter $SERVICE"
     sudo systemctl enable "$SERVICE"
@@ -58,5 +58,15 @@ for SERVICE in rfid_webpanel rfid_trigger_listener rfid_input_listener rfid_wifi
     echo "⚠️ Tjenestefil mangler: ${SERVICE}.service"
   fi
 done
+
+# Gi $USER_NAME passordløs tilgang til nøyaktig "systemctl reboot", slik at
+# "Sjekk etter oppdatering"-knappen i webpanelet kan restarte Pi-en selv
+# (Flask kjører ikke-interaktivt og kan ikke skrive inn et sudo-passord).
+SYSTEMCTL_PATH=$(command -v systemctl)
+SUDOERS_FILE="/etc/sudoers.d/rfidmusicbox"
+echo "🔐 Setter opp passordløs 'systemctl reboot' for $USER_NAME..."
+echo "$USER_NAME ALL=(ALL) NOPASSWD: $SYSTEMCTL_PATH reboot" | sudo tee "$SUDOERS_FILE" > /dev/null
+sudo chmod 440 "$SUDOERS_FILE"
+sudo visudo -c -f "$SUDOERS_FILE" || echo "⚠️ Advarsel: $SUDOERS_FILE besto ikke visudo-sjekken, fjern/rett den manuelt"
 
 echo "🎉 Installasjon og oppdatering fullført!"

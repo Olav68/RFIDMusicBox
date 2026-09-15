@@ -11,6 +11,7 @@ Et Raspberry Pi-basert musikksystem for barn, som spiller av sanger når man ska
 - 🔊 Volumkontroll og avspillingsstyring
 - 🪪 Koble eller fjern RFID-koder enkelt
 - 📶 Koble til WiFi fra panelet, med automatisk oppsetts-hotspot hvis Pi-en mangler nett
+- 🔄 Hent oppdatert kode fra git manuelt fra panelet, eller automatisk ved oppstart
 - 📜 Logger aktivitet og systemstatus
 
 ## 🖥️ Systemkrav
@@ -34,20 +35,23 @@ pip install -r requirements.txt
 
 ## 🔧 Oppsett av systemtjenester
 
-Systemet består av fire uavhengige systemd-tjenester som starter automatisk ved oppstart:
+Systemet består av fem uavhengige systemd-tjenester:
 
+- `rfid_auto_update` — sjekker git for oppdatert kode én gang ved oppstart, før de andre tjenestene starter; se under
 - `rfid_input_listener` — leser RFID-koder fra USB-leseren
 - `rfid_trigger_listener` — spiller av sang/spilleliste når et nytt kort skannes
 - `rfid_webpanel` — Flask-basert kontrollpanel på port 5000
 - `rfid_wifi_watchdog` — sjekker jevnlig om Pi-en har internett; se under
 
-Installer og aktiver alle fire med:
+Installer og aktiver alle fem med:
 
 ```bash
 sudo bash scripts/installer_tjenester.sh
 ```
 
-Dette kopierer filene i `services/` til `/etc/systemd/system/` og aktiverer dem. Kjør samme script på nytt etter en `git pull` for å oppdatere en kjørende installasjon.
+Dette kopierer filene i `services/` til `/etc/systemd/system/` og aktiverer dem, og setter opp en `sudoers`-regel
+som gir brukeren passordløs tilgang til nøyaktig `systemctl reboot` (se under). Kjør samme script på nytt etter
+en `git pull` for å oppdatere en kjørende installasjon.
 
 ## 📶 WiFi-oppsett og eget nett ved manglende tilkobling
 
@@ -69,6 +73,21 @@ Wifi-siden i panelet (`/wifi`) viser skannede nettverk, men kan gi tomme resulta
 eget hotspot (radioen kan vanligvis ikke skanne og være hotspot samtidig) — bruk da feltet for manuell
 tilkobling med nettverksnavn og passord.
 
+## 🔄 Oppdatering av kode
+
+To måter å hente ny kode fra git på:
+
+- **Automatisk ved oppstart:** `rfid_auto_update` kjører `scripts/git_update.sh` én gang før de andre
+  tjenestene starter. Git-kallene er tidsbegrenset (15s) slik at manglende nett ikke forsinker oppstarten -
+  tjenestene starter uansett med den koden som allerede ligger på disk.
+- **Manuelt fra panelet:** knappen "🔄 Sjekk etter oppdatering" på forsiden kjører samme script. Finnes det en
+  ny versjon, hentes den (`git reset --hard origin/main`) og **Pi-en restarter seg selv** noen sekunder senere
+  for å ta den i bruk. Er koden allerede oppdatert, skjer ingenting utover en loggmelding.
+
+Restarten skjer via `sudo systemctl reboot`, som webpanel-prosessen (kjører ikke-interaktivt, kan ikke skrive
+inn et passord) trenger passordløs tilgang til. `scripts/installer_tjenester.sh` setter opp nøyaktig denne ene
+sudoers-regelen automatisk - ingen bred sudo-tilgang gis.
+
 ## 📁 Filstruktur
 
 ```
@@ -78,7 +97,7 @@ RFIDMusicBox/
 ├── rfid_trigger_listener.py     # Spiller av sang/spilleliste ved nytt RFID-kort
 ├── wifi_watchdog.py             # Starter eget WiFi-nett hvis Pi-en mangler internett
 ├── utils.py                     # Felles verktøy (logging, lagring, avspilling, lydenheter)
-├── services/                    # systemd-enhetsfiler for de fire tjenestene
+├── services/                    # systemd-enhetsfiler for de fem tjenestene
 ├── scripts/                     # Installasjons- og driftsscript
 ├── templates/                   # HTML-filer for webpanelet
 ├── static/                      # PDF-bruksanvisning

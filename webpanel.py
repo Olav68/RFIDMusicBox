@@ -114,6 +114,31 @@ def log():
 def help_page():
     return render_template("help.html")
 
+UPDATE_SCRIPT = "/home/magic/programmer/RFIDMusicBox/scripts/git_update.sh"
+
+@app.route("/update", methods=["POST"])
+def update_from_git():
+    try:
+        result = subprocess.run(
+            ["bash", UPDATE_SCRIPT], capture_output=True, text=True, timeout=60
+        )
+        output = result.stdout.strip()
+        for line in output.splitlines():
+            if line and line != "UPDATED":
+                append_log(line)
+
+        if "UPDATED" in output.splitlines():
+            append_log("🔁 Oppdatering hentet - starter Pi-en på nytt om noen sekunder for å ta den i bruk")
+            # Kort forsinkelse slik at denne HTTP-forespørselen rekker å bli
+            # besvart før webpanel-prosessen selv blir tatt ned av omstarten.
+            subprocess.Popen(["bash", "-c", "sleep 3 && sudo systemctl reboot"])
+        else:
+            append_log("✅ Sjekket etter oppdatering - ingen ny versjon funnet")
+    except Exception as e:
+        append_log(f"❌ Feil ved sjekk etter oppdatering: {e}")
+
+    return redirect("/")
+
 def get_connected_ssid():
     try:
         result = subprocess.run(
