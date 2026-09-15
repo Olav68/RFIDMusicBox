@@ -154,7 +154,11 @@ def download_youtube_playlist(url, target_folder):
             "yt-dlp",
             "-x", "--audio-format", "mp3",
             url,
-            "-o", f"{target_folder}/%(title)s.%(ext)s"
+            # Filnavn sortert alfabetisk (det play_playlist() bruker) må matche
+            # den ekte spillelisterekkefølgen - uten indeksprefiks havner filene
+            # i tilfeldig alfabetisk rekkefølge etter tittel, som er spesielt
+            # ødeleggende for lydbøker der kapittelrekkefølgen betyr noe.
+            "-o", f"{target_folder}/%(playlist_index)03d - %(title)s.%(ext)s"
         ]
         result = subprocess.run(cmd)
         return result.returncode == 0
