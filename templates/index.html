@@ -56,14 +56,9 @@ updateRFIDStatus();
     <input type="text" id="url" name="url" required style="width: 60%">
       <button type="submit">💾 Legg til ny sang</button>
 </form>
-<!--
-<form action="/simulate_rfid" method="post" style="margin-top:1em;">
-    <label for="rfid">Test RFID:</label>
-    <input type="text" name="rfid" required>
-    <button type="submit">🧪 Simuler RFID-skudd</button>
-</form>
--->
 <p><strong>IP-adresse:</strong> <code>{{ ip }}</code> eller <code>http://magicmusic.local</code></p>
+
+<p><a href="/help">📖 Bruksanvisning</a></p>
 
 <p><strong>Aktiv lydenhet:</strong>
   {{ current_sink_friendly if current_sink_friendly else current_sink }}

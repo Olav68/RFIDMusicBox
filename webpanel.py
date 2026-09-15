@@ -111,6 +111,10 @@ def status():
 def log():
     return jsonify(load_log())
 
+@app.route("/help")
+def help_page():
+    return render_template("help.html")
+
 def download_song(song_id, url):
     songs = load_songs()
     if is_youtube_playlist(url):

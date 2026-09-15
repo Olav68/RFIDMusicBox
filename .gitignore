@@ -9,6 +9,7 @@ activity_log.json.*
 # Midlertidige JSON-konfigurasjoner og data
 songs.json
 config.json
+.last_rfid_seen.txt
 
 # MP3-filer (de lastes ned automatisk)
 *.mp3
