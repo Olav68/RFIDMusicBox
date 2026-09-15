@@ -160,6 +160,28 @@ def skip_to_previous_track():
     except Exception as e:
         append_log(f"❌ Klarte ikke hoppe til forrige spor (spilles det av en spilleliste nå?): {e}")
 
+def is_playlist_playing():
+    # Brukes av panelet til å bare vise Forrige/Neste-knappene når de faktisk
+    # gjør noe - spør den kjørende mpv-prosessen selv (via IPC) om den har mer
+    # enn ett spor i sin interne spilleliste, i stedet for å anta ut fra hva
+    # som sist ble trigget (som fort kan komme ut av sync).
+    try:
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+            sock.settimeout(1)
+            sock.connect(_MPV_IPC_SOCKET)
+            sock.sendall((json.dumps({"command": ["get_property", "playlist-count"], "request_id": 1}) + "\n").encode())
+            response = sock.recv(4096).decode()
+        for line in response.splitlines():
+            try:
+                msg = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if msg.get("request_id") == 1:
+                return msg.get("data", 0) > 1
+        return False
+    except Exception:
+        return False
+
 def play_song(filepath):
     append_log(f"Starter å spille: {filepath}")
 

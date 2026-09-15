@@ -63,6 +63,9 @@ function updateRFIDStatus() {
             const text = data.status === "ready" ? "klar til avspilling" : "ikke koblet eller mangler fil";
             div.innerHTML = `${color} Siste RFID: <b>${data.rfid}</b> (${text})`;
             timestamp.innerHTML = "⏱️ Oppdatert: " + new Date().toLocaleTimeString();
+
+            document.getElementById("skip-previous-form").hidden = !data.playlist_playing;
+            document.getElementById("skip-next-form").hidden = !data.playlist_playing;
         })
         .catch(() => {
             document.getElementById("rfid-status").innerText = "❌ Klarte ikke hente status.";
@@ -115,14 +118,14 @@ updateRFIDStatus();
 </p>
 
 <div style="display: flex; gap: 0.6em; margin-top: 1em;">
-  <form method="post" action="/skip_previous" style="margin: 0;">
-    <button class="btn btn-default" type="submit" title="Forrige spor (kun spillelister)">⏮ Forrige</button>
+  <form id="skip-previous-form" method="post" action="/skip_previous" style="margin: 0;"{% if not playlist_playing %} hidden{% endif %}>
+    <button class="btn btn-default" type="submit" title="Forrige spor">⏮ Forrige</button>
   </form>
   <form method="post" action="/stop" style="margin: 0;">
     <button class="btn btn-stop" type="submit">🟥 Stopp</button>
   </form>
-  <form method="post" action="/skip_next" style="margin: 0;">
-    <button class="btn btn-default" type="submit" title="Neste spor (kun spillelister)">⏭ Neste</button>
+  <form id="skip-next-form" method="post" action="/skip_next" style="margin: 0;"{% if not playlist_playing %} hidden{% endif %}>
+    <button class="btn btn-default" type="submit" title="Neste spor">⏭ Neste</button>
   </form>
 </div>
 

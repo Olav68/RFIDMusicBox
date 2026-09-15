@@ -17,6 +17,7 @@ from utils import (
     find_song_by_rfid,
     skip_to_next_track,
     skip_to_previous_track,
+    is_playlist_playing,
     list_audio_devices_with_friendly_names as list_audio_devices,
     get_current_default_sink,  # ← riktig funksjon her
     get_current_volume
@@ -114,6 +115,7 @@ def index():
         current_sink_friendly=current_sink_friendly,
         current_volume=current_volume,
         connected_ssid=connected_ssid,
+        playlist_playing=is_playlist_playing(),
         version=get_git_version()
     )
 
@@ -149,7 +151,8 @@ def status():
             valid = os.path.exists(folder_path) and any(f.endswith(".mp3") for f in os.listdir(folder_path))
     return jsonify({
         "rfid": rfid,
-        "status": "ready" if valid else "missing"
+        "status": "ready" if valid else "missing",
+        "playlist_playing": is_playlist_playing()
     })
 
 @app.route("/log")
