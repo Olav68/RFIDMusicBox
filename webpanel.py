@@ -536,6 +536,18 @@ def unlink_rfid():
         save_songs(songs)
     return redirect("/")
 
+def resume_stuck_downloads():
+    # Blir en nedlasting avbrutt (f.eks. Pi-en restartet midt i via "Oppdater
+    # app"), blir oppføringen stående på status "downloading" for alltid - ingen
+    # automatikk plukket den opp igjen. Gjenopptar dem her, ved hver oppstart av
+    # webpanelet: yt-dlp hopper selv over filer som allerede er lastet ned, så
+    # dette fortsetter kun med det som mangler i stedet for å starte på nytt.
+    songs = load_songs()
+    stuck = [sid for sid, song in songs.items() if isinstance(song, dict) and song.get("status") == "downloading"]
+    for sid in stuck:
+        append_log(f"🔁 Gjenopptar avbrutt nedlasting: {songs[sid].get('title', sid)}")
+        subprocess.Popen(["python3", __file__, "--download", sid])
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) == 3 and sys.argv[1] == "--download":
@@ -547,4 +559,5 @@ if __name__ == "__main__":
         run_full_update()
     else:
         append_log("🌍 Starter webpanel på port 5000")
+        resume_stuck_downloads()
         app.run(host="0.0.0.0", port=5000)

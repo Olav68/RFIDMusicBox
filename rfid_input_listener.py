@@ -1,5 +1,6 @@
 import os
 import json
+import time
 from evdev import InputDevice, categorize, ecodes, list_devices
 from utils import append_log, load_songs, save_songs, play_song
 
@@ -44,6 +45,13 @@ def main():
                     append_log(f"📥 RFID registrert: {rfid}")
                     songs = load_songs()
                     songs["last_read_rfid"] = rfid
+                    # Tidsstempel for selve skanningen (ikke bare koden) - lar
+                    # rfid_trigger_listener.py skille et helt nytt trykk av
+                    # samme kort fra at koden bare fortsatt ligger urørt siden
+                    # sist, slik at samme kort kan spilles av igjen etter en
+                    # kort pause uten å trigge på nytt mens kortet ligger og
+                    # blir lest kontinuerlig.
+                    songs["last_read_time"] = time.time()
                     save_songs(songs)
                     print(f"🔔 RFID: {rfid}")  # valgfritt: terminal
                 else:
