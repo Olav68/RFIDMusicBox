@@ -1,0 +1,13 @@
+[Unit]
+Description=RFID MusicBox GPIO Button Listener (volum, stopp, spill av igjen)
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /home/magic/programmer/RFIDMusicBox/gpio_button_listener.py
+WorkingDirectory=/home/magic/programmer/RFIDMusicBox
+Restart=always
+User=magic
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

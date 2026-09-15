@@ -127,6 +127,12 @@ def play_song(filepath):
     except Exception as e:
         append_log(f"❌ Feil ved avspilling i play_song(): {e}")
 
+def find_song_by_rfid(data, rfid_code):
+    for key, val in data.items():
+        if isinstance(val, dict) and val.get("rfid") == rfid_code:
+            return val
+    return None
+
 def is_youtube_playlist(url):
     try:
         parsed = urlparse(url)

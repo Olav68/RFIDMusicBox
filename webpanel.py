@@ -13,6 +13,7 @@ from utils import (
     is_youtube_playlist,
     download_youtube_playlist,
     play_playlist,
+    find_song_by_rfid,
     list_audio_devices_with_friendly_names as list_audio_devices,
     get_current_default_sink  # ← riktig funksjon her
 )
@@ -84,12 +85,6 @@ def is_valid_url(url):
     return url.startswith("http") and (
         "youtube.com" in url or "youtu.be" in url
     )
-
-def find_song_by_rfid(data, rfid_code):
-    for key, val in data.items():
-        if isinstance(val, dict) and val.get("rfid") == rfid_code:
-            return val
-    return None
 
 @app.route("/status")
 def status():
