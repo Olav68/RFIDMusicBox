@@ -174,20 +174,29 @@ bruker Pi-ens interne pull-up-motstand, så ingen eksterne komponenter er nødve
 Pinnenumrene er konstanter øverst i `gpio_button_listener.py` og kan endres der om du kobler knappene til andre
 pinner.
 
-## 🔄 Oppdatering av kode
+## 🔄 Oppdatering av kode og komponenter
 
-To måter å hente ny kode fra git på:
+`scripts/git_update.sh` gjør to ting ulikt avhengig av hvordan den kalles:
 
-- **Automatisk ved oppstart:** `rfid_auto_update` kjører `scripts/git_update.sh` én gang før de andre
-  tjenestene starter. Git-kallene er tidsbegrenset (15s) slik at manglende nett ikke forsinker oppstarten -
-  tjenestene starter uansett med den koden som allerede ligger på disk.
-- **Manuelt fra panelet:** knappen "🔄 Sjekk etter oppdatering" på forsiden kjører samme script. Finnes det en
-  ny versjon, hentes den (`git reset --hard origin/main`) og **Pi-en restarter seg selv** noen sekunder senere
-  for å ta den i bruk. Er koden allerede oppdatert, skjer ingenting utover en loggmelding.
+- **Automatisk ved oppstart (rask, kun kode):** `rfid_auto_update` kjører scriptet uten flagg én gang før de
+  andre tjenestene starter - henter ny kode fra git (`git reset --hard origin/main`) og oppdaterer
+  Python-avhengighetene (`pip install --upgrade`). Nettverkskallene er tidsbegrenset (15s for git, 30s for pip)
+  slik at manglende nett ikke forsinker oppstarten unødig - tjenestene starter uansett med det som allerede
+  ligger på disk.
+- **Manuelt fra panelet (full oppdatering):** knappen "🔄 Oppdater app" på forsiden kjører scriptet med
+  `--full`, som i tillegg oppdaterer systempakker via `apt-get update && apt-get upgrade` (mpv, ffmpeg, BlueZ,
+  osv.). Dette kan ta flere minutter, så det kjøres i bakgrunnen - panelet henger ikke og venter. Python-
+  avhengighetene oppdateres nå alltid (også `yt-dlp`, som trenger jevnlige oppdateringer for at
+  YouTube-nedlasting skal fortsette å fungere), selv om appens egen kode ikke har endret seg. Er noe som helst
+  endret (kode, Python-pakker eller systempakker), **restarter Pi-en seg selv** noen sekunder senere for å ta
+  alt i bruk. Er alt allerede oppdatert, skjer ingenting utover en loggmelding.
 
-Restarten skjer via `sudo systemctl reboot`, som webpanel-prosessen (kjører ikke-interaktivt, kan ikke skrive
-inn et passord) trenger passordløs tilgang til. `scripts/installer_tjenester.sh` setter opp nøyaktig denne ene
-sudoers-regelen automatisk - ingen bred sudo-tilgang gis.
+Restart skjer via `sudo systemctl reboot`, og systempakke-oppdatering via `sudo apt-get update`/`apt-get upgrade`
+— webpanel-prosessen (kjører ikke-interaktivt, kan ikke skrive inn et passord) trenger passordløs tilgang til
+nøyaktig disse tre kommandoene. `scripts/installer_tjenester.sh` setter opp denne sudoers-regelen automatisk;
+ingen andre `apt-get`-underkommandoer (som `install`/`remove`/`purge`) gis tilgang. Merk at dette er en bredere
+sudo-tilgang enn tidligere versjoner av prosjektet (som kun ga `systemctl reboot`) — en bevisst avveining for å
+få automatiske systemoppdateringer, se commit-historikken for bakgrunn.
 
 ## 📁 Filstruktur
 

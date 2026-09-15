@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>Endringslogg</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        h1 { color: #333; }
+        .hint { color: #666; font-size: 0.9em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+        th, td { border: 1px solid #ccc; padding: 0.5em; text-align: left; vertical-align: top; }
+        th { background: #f4f4f4; }
+        .hash { font-family: monospace; color: #555; white-space: nowrap; }
+        .date { white-space: nowrap; color: #555; }
+    </style>
+</head>
+<body>
+
+<h1>Endringslogg</h1>
+<p class="hint">Kjørende versjon: <span class="hash">{{ version.commit }}</span>{% if version.date %} ({{ version.date }}){% endif %}</p>
+
+{% if commits %}
+<table>
+  <tr><th>Commit</th><th>Dato</th><th>Endring</th><th>Forfatter</th></tr>
+  {% for c in commits %}
+  <tr>
+    <td class="hash">{{ c.hash }}</td>
+    <td class="date">{{ c.date }}</td>
+    <td>{{ c.message }}</td>
+    <td>{{ c.author }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>❌ Klarte ikke hente endringslogg fra git.</p>
+{% endif %}
+
+<p style="margin-top: 1.5em;"><a href="/">← Tilbake til forsiden</a></p>
+</body>
+</html>

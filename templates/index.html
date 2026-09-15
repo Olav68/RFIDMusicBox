@@ -73,6 +73,11 @@ updateRFIDStatus();
 </script>
 
 <h1>Bestefars magiske spilleboks</h1>
+<p style="margin-top: -0.8em;">
+  <a href="/changelog" style="color: #666; font-size: 0.9em; text-decoration: none;" title="Se endringslogg">
+    🏷️ Versjon: {{ version.commit }}{% if version.date %} ({{ version.date }}){% endif %}
+  </a>
+</p>
 
 <form action="/add_url" method="post">
     <label for="url">Lim inn YouTube URL (Sjekk om URL inneholder ordet "list" dersom det er en spilleliste):</label><br>
@@ -85,7 +90,7 @@ updateRFIDStatus();
   <a class="btn btn-default" href="/wifi">📶 WiFi-innstillinger</a>
   <a class="btn btn-default" href="/bluetooth">🔵 Bluetooth-enheter</a>
   <form method="post" action="/update" style="margin: 0;"
-        onsubmit="return confirm('Sjekke etter oppdatert kode? Hvis det finnes en ny versjon, restartes Pi-en automatisk for å ta den i bruk.');">
+        onsubmit="return confirm('Oppdatere kode, Python-avhengigheter og systempakker? Dette kan ta noen minutter, og Pi-en restarter automatisk etterpå hvis noe ble oppdatert.');">
     <button class="btn btn-default" type="submit">🔄 Oppdater app</button>
   </form>
 </div>

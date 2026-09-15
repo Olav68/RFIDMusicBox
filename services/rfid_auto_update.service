@@ -10,7 +10,7 @@ ExecStart=/bin/bash /home/magic/programmer/RFIDMusicBox/scripts/git_update.sh
 WorkingDirectory=/home/magic/programmer/RFIDMusicBox
 User=magic
 Environment=PYTHONUNBUFFERED=1
-TimeoutStartSec=30
+TimeoutStartSec=60
 
 [Install]
 WantedBy=multi-user.target

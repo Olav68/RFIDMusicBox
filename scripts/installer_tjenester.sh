@@ -59,13 +59,20 @@ for SERVICE in rfid_webpanel rfid_trigger_listener rfid_input_listener rfid_wifi
   fi
 done
 
-# Gi $USER_NAME passordløs tilgang til nøyaktig "systemctl reboot", slik at
-# "Sjekk etter oppdatering"-knappen i webpanelet kan restarte Pi-en selv
-# (Flask kjører ikke-interaktivt og kan ikke skrive inn et sudo-passord).
+# Gi $USER_NAME passordløs tilgang til nøyaktig "systemctl reboot" (restart etter
+# oppdatering) og "apt-get update"/"apt-get upgrade" (systempakke-oppdatering fra
+# "Oppdater app"-knappen), slik at webpanelet kan gjøre dette selv - Flask kjører
+# ikke-interaktivt og kan ikke skrive inn et sudo-passord. Ingen andre apt-
+# underkommandoer (install/remove/purge) gis tilgang.
 SYSTEMCTL_PATH=$(command -v systemctl)
+APT_GET_PATH=$(command -v apt-get)
 SUDOERS_FILE="/etc/sudoers.d/rfidmusicbox"
-echo "🔐 Setter opp passordløs 'systemctl reboot' for $USER_NAME..."
-echo "$USER_NAME ALL=(ALL) NOPASSWD: $SYSTEMCTL_PATH reboot" | sudo tee "$SUDOERS_FILE" > /dev/null
+echo "🔐 Setter opp passordløs sudo-tilgang for $USER_NAME (systemctl reboot, apt-get update/upgrade)..."
+{
+    echo "$USER_NAME ALL=(ALL) NOPASSWD: $SYSTEMCTL_PATH reboot"
+    echo "$USER_NAME ALL=(ALL) NOPASSWD: $APT_GET_PATH update"
+    echo "$USER_NAME ALL=(ALL) NOPASSWD: $APT_GET_PATH upgrade *"
+} | sudo tee "$SUDOERS_FILE" > /dev/null
 sudo chmod 440 "$SUDOERS_FILE"
 sudo visudo -c -f "$SUDOERS_FILE" || echo "⚠️ Advarsel: $SUDOERS_FILE besto ikke visudo-sjekken, fjern/rett den manuelt"
 

@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import os
 import json
+import shutil
 import subprocess
 import socket
 from datetime import datetime
@@ -23,6 +24,48 @@ app = Flask(__name__)
 
 STORAGE_DIR = "/home/magic/programmer/RFIDMusicBox/mp3"
 SONGS_FILE = "/home/magic/programmer/RFIDMusicBox/songs.json"
+REPO_DIR = "/home/magic/programmer/RFIDMusicBox"
+
+def get_git_version():
+    try:
+        commit = subprocess.run(
+            ["git", "-C", REPO_DIR, "rev-parse", "--short", "HEAD"],
+            capture_output=True, text=True, timeout=5
+        )
+        date = subprocess.run(
+            ["git", "-C", REPO_DIR, "log", "-1", "--format=%cd", "--date=short"],
+            capture_output=True, text=True, timeout=5
+        )
+        return {
+            "commit": commit.stdout.strip() if commit.returncode == 0 else "ukjent",
+            "date": date.stdout.strip() if date.returncode == 0 else "",
+        }
+    except Exception:
+        return {"commit": "ukjent", "date": ""}
+
+def get_git_log(limit=50):
+    try:
+        result = subprocess.run(
+            ["git", "-C", REPO_DIR, "log", f"-{limit}", "--date=short",
+             "--pretty=format:%h\x1f%ad\x1f%an\x1f%s"],
+            capture_output=True, text=True, timeout=5
+        )
+        if result.returncode != 0:
+            return []
+        commits = []
+        for line in result.stdout.splitlines():
+            parts = line.split("\x1f")
+            if len(parts) == 4:
+                commits.append({
+                    "hash": parts[0], "date": parts[1], "author": parts[2], "message": parts[3]
+                })
+        return commits
+    except Exception:
+        return []
+
+@app.route("/changelog")
+def changelog():
+    return render_template("changelog.html", commits=get_git_log(), version=get_git_version())
 
 @app.route("/edit_title", methods=["POST"])
 def edit_title():
@@ -65,7 +108,8 @@ def index():
         audio_devices=audio_devices,
         current_sink=current_sink,
         current_sink_friendly=current_sink_friendly,
-        connected_ssid=connected_ssid
+        connected_ssid=connected_ssid,
+        version=get_git_version()
     )
 
 @app.route("/set_default_device", methods=["POST"])
@@ -113,11 +157,10 @@ def help_page():
 
 UPDATE_SCRIPT = "/home/magic/programmer/RFIDMusicBox/scripts/git_update.sh"
 
-@app.route("/update", methods=["POST"])
-def update_from_git():
+def run_full_update():
     try:
         result = subprocess.run(
-            ["bash", UPDATE_SCRIPT], capture_output=True, text=True, timeout=60
+            ["bash", UPDATE_SCRIPT, "--full"], capture_output=True, text=True, timeout=600
         )
         output = result.stdout.strip()
         for line in output.splitlines():
@@ -130,10 +173,17 @@ def update_from_git():
             # besvart før webpanel-prosessen selv blir tatt ned av omstarten.
             subprocess.Popen(["bash", "-c", "sleep 3 && sudo systemctl reboot"])
         else:
-            append_log("✅ Sjekket etter oppdatering - ingen ny versjon funnet")
+            append_log("✅ Sjekket etter oppdatering - alt er allerede oppdatert")
     except Exception as e:
         append_log(f"❌ Feil ved sjekk etter oppdatering: {e}")
 
+@app.route("/update", methods=["POST"])
+def update_from_git():
+    # Kjøres i bakgrunnen: en full oppdatering (kode + Python-avhengigheter +
+    # systempakker via apt) kan ta flere minutter, og skal ikke la denne
+    # HTTP-forespørselen henge og vente.
+    append_log("🔄 Starter full oppdatering (kode, avhengigheter, systempakker) - dette kan ta noen minutter...")
+    subprocess.Popen(["python3", __file__, "--full-update"])
     return redirect("/")
 
 def get_connected_ssid():
@@ -317,12 +367,21 @@ def bluetooth_remove():
     return redirect("/bluetooth")
 
 def download_song(song_id, url):
-    songs = load_songs()
     if is_youtube_playlist(url):
         playlist_dir = f"playlist_{song_id}"
         full_path = os.path.join(STORAGE_DIR, playlist_dir)
         os.makedirs(full_path, exist_ok=True)
         success = download_youtube_playlist(url, full_path)
+
+        # Last inn på nytt etter (potensielt lang) nedlasting - sangen kan ha
+        # blitt slettet fra panelet i mellomtiden. Ikke la filene bli liggende
+        # foreldreløse på disk hvis oppføringen er borte.
+        songs = load_songs()
+        if song_id not in songs:
+            shutil.rmtree(full_path, ignore_errors=True)
+            append_log(f"⚠️ Spilleliste slettet før nedlasting fullførte - fjernet {playlist_dir} igjen")
+            return
+
         if success:
             songs[song_id]["status"] = "ready"
             songs[song_id]["playlist_dir"] = playlist_dir
@@ -335,6 +394,14 @@ def download_song(song_id, url):
         full_path = os.path.join(STORAGE_DIR, filename)
         cmd = ["yt-dlp", "-x", "--audio-format", "mp3", url, "-o", full_path]
         result = subprocess.run(cmd)
+
+        songs = load_songs()
+        if song_id not in songs:
+            if os.path.exists(full_path):
+                os.remove(full_path)
+            append_log(f"⚠️ Sang slettet før nedlasting fullførte - fjernet {filename} igjen")
+            return
+
         if result.returncode == 0:
             songs[song_id]["status"] = "ready"
             songs[song_id]["filename"] = filename
@@ -391,12 +458,16 @@ def delete_song():
     songs = load_songs()
     song = songs.get(song_id)
 
-    # Slett MP3-fil hvis den finnes
+    # Slett MP3-fil eller spillelistemappe hvis den finnes
     if song and "filename" in song:
         filepath = os.path.join(STORAGE_DIR, song["filename"])
         if os.path.exists(filepath):
             os.remove(filepath)
-    
+    elif song and "playlist_dir" in song:
+        dirpath = os.path.join(STORAGE_DIR, song["playlist_dir"])
+        if os.path.exists(dirpath):
+            shutil.rmtree(dirpath)
+
     # Slett sang fra listen
     if song_id in songs:
         append_log(f"🗑 Slettet sang: {songs[song_id].get('title', song_id)}")
@@ -462,6 +533,8 @@ if __name__ == "__main__":
         songs = load_songs()
         if sid in songs:
             download_song(sid, songs[sid]["url"])
+    elif len(sys.argv) == 2 and sys.argv[1] == "--full-update":
+        run_full_update()
     else:
         append_log("🌍 Starter webpanel på port 5000")
         app.run(host="0.0.0.0", port=5000)
