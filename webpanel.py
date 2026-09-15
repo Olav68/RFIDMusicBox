@@ -385,7 +385,12 @@ def download_song(song_id, url):
         if success:
             songs[song_id]["status"] = "ready"
             songs[song_id]["playlist_dir"] = playlist_dir
-            append_log(f"📥 Lastet ned spilleliste til: {playlist_dir}")
+            meta = subprocess.run(
+                ["yt-dlp", "--flat-playlist", "--playlist-items", "1", "--print", "%(playlist_title)s", url],
+                capture_output=True, text=True
+            )
+            songs[song_id]["title"] = meta.stdout.strip() if meta.returncode == 0 and meta.stdout.strip() else playlist_dir
+            append_log(f"📥 Lastet ned spilleliste: {songs[song_id]['title']}")
         else:
             songs[song_id]["status"] = "error"
             append_log(f"❌ Feil ved nedlasting av spilleliste: {url}")
