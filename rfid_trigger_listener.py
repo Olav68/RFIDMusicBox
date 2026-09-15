@@ -1,7 +1,7 @@
 # rfid_trigger_listener.py
 import time
 import os
-from utils import load_songs, append_log, play_song
+from utils import load_songs, append_log, play_song, play_playlist
 
 SONGS_FILE = "/home/magic/programmer/RFIDMusicBox/songs.json"
 STORAGE_DIR = "/home/magic/programmer/RFIDMusicBox/mp3"
@@ -41,12 +41,19 @@ def main():
 
                 song = find_song_by_rfid(data, current_rfid)
                 if song:
-                    filepath = os.path.join(STORAGE_DIR, song["filename"])
-                    if os.path.exists(filepath):
-                        append_log(f"▶ Spiller: {song.get('title', filepath)}")
-                        play_song(filepath)
+                    if song.get("type") == "playlist" and "playlist_dir" in song:
+                        folder = os.path.join(STORAGE_DIR, song["playlist_dir"])
+                        append_log(f"▶ Spiller spilleliste: {song.get('title', folder)}")
+                        play_playlist(folder)
+                    elif "filename" in song:
+                        filepath = os.path.join(STORAGE_DIR, song["filename"])
+                        if os.path.exists(filepath):
+                            append_log(f"▶ Spiller: {song.get('title', filepath)}")
+                            play_song(filepath)
+                        else:
+                            append_log(f"❌ Fil mangler: {filepath}")
                     else:
-                        append_log(f"❌ Fil mangler: {filepath}")
+                        append_log(f"❌ Ingen gyldig kilde for sang knyttet til RFID: {current_rfid}")
                 else:
                     append_log(f"🚫 Ingen sang knyttet til RFID: {current_rfid}")
 

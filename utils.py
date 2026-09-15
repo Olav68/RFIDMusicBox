@@ -1,8 +1,41 @@
+#Utils for RFIDMusicBox
 import os
 import json
 import subprocess
 from datetime import datetime
+from urllib.parse import urlparse, parse_qs
 
+def list_audio_devices_with_friendly_names():
+    try:
+        result = subprocess.run(["pactl", "list", "sinks"], capture_output=True, text=True)
+        output = result.stdout
+
+        devices = []
+        current = {}
+        for line in output.splitlines():
+            line = line.strip()
+            if line.startswith("Sink #"):
+                if current:
+                    devices.append(current)
+                current = {}
+            elif line.startswith("Name:"):
+                current["name"] = line.split("Name:")[1].strip()
+            elif line.startswith("Description:"):
+                current["friendly"] = line.split("Description:")[1].strip()
+        if current:
+            devices.append(current)
+        return devices
+    except Exception as e:
+        append_log(f"❌ Klarte ikke hente lydutganger: {e}")
+        return []
+
+def get_current_default_sink():
+    try:
+        result = subprocess.run(["pactl", "get-default-sink"], capture_output=True, text=True)
+        return result.stdout.strip()
+    except Exception as e:
+        append_log(f"❌ Klarte ikke hente aktiv lydenhet: {e}")
+        return None
 
 def append_log(entry, log_file="/home/magic/programmer/RFIDMusicBox/activity_log.json", max_lines=100):
     try:
@@ -53,19 +86,54 @@ def save_songs(songs, song_file="/home/magic/programmer/RFIDMusicBox/songs.json"
         print(f"❌ Feil ved lagring av sanger: {e}")
 
 def play_song(filepath):
-    append_log(f"▶ Forbereder å spille: {filepath}")
+    append_log(f"Starter å spille: {filepath}")
 
     if not os.path.exists(filepath):
         append_log(f"❌ Fil ikke funnet: {filepath}")
         return
 
-    subprocess.call(["pkill", "-f", "mpv"])
-    append_log("🔇 Tidligere mpv-prosess stoppet")
-
     try:
+        subprocess.call(["pkill", "-f", "mpv"])
+        append_log("🔇 Tidligere mpv-prosess stoppet")
+
         subprocess.Popen([
             "mpv", "--ao=alsa", "--no-video", "--force-window=no", filepath
-        ])
+        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
         append_log(f"▶ mpv startet via ALSA: {filepath}")
     except Exception as e:
-        append_log(f"❌ Feil ved avspilling: {e}")
+        append_log(f"❌ Feil ved avspilling i play_song(): {e}")
+
+def is_youtube_playlist(url):
+    try:
+        parsed = urlparse(url)
+        query = parse_qs(parsed.query)
+        return "list" in query and query["list"][0].startswith("PL")
+    except Exception:
+        return False
+
+def download_youtube_playlist(url, target_folder):
+    try:
+        os.makedirs(target_folder, exist_ok=True)
+        cmd = [
+            "yt-dlp",
+            "-x", "--audio-format", "mp3",
+            url,
+            "-o", f"{target_folder}/%(title)s.%(ext)s"
+        ]
+        result = subprocess.run(cmd)
+        return result.returncode == 0
+    except Exception as e:
+        append_log(f"❌ Feil ved nedlasting av spilleliste: {e}")
+        return False
+
+def play_playlist(folder):
+    if not os.path.exists(folder):
+        append_log(f"❌ Spilleliste-mappe ikke funnet: {folder}")
+        return
+    mp3_files = sorted([f for f in os.listdir(folder) if f.endswith(".mp3")])
+    append_log(f"▶ Starter spilleliste med {len(mp3_files)} filer: {folder}")
+    for mp3 in mp3_files:
+        filepath = os.path.join(folder, mp3)
+        append_log(f"▶ Spiller fra liste: {mp3}")
+        play_song(filepath)

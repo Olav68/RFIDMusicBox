@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Hent alle fjernbrancher unntatt origin/HEAD og origin/Playlist
+branches=$(git branch -r | grep -v 'origin/HEAD' | grep -v 'origin/Playlist' | sed 's/ *origin\///')
+
+echo "Følgende fjernbrancher vil bli slettet:"
+echo "$branches"
+echo ""
+
+# Bekreft sletting
+read -p "Er du sikker på at du vil slette disse branchene på origin? (ja/nei): " confirm
+if [[ "$confirm" != "ja" ]]; then
+    echo "Avbryter."
+    exit 1
+fi
+
+# Slett hver branch
+for branch in $branches; do
+    echo "Sletter: $branch"
+    git push origin --delete "$branch"
+done
+
+echo "Ferdig."

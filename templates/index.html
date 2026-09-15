@@ -52,27 +52,39 @@ updateRFIDStatus();
 <h1>Ola's magiske spilleboks</h1>
 
 <form action="/add_url" method="post">
-    <label for="url">Lim inn YouTube URL (fra "del" i youtube):</label><br>
+    <label for="url">Lim inn YouTube URL (Sjekk om URL inneholder ordet "list" dersom det er en spilleliste):</label><br>
     <input type="text" id="url" name="url" required style="width: 60%">
-    <button class="button-new" type="submit">Legg til sang</button>
+      <button type="submit">💾 Legg til ny sang</button>
 </form>
-
-<form action="/simulate_rfid" method="post" style="margin-top:1em;">
-    <label for="rfid">Test RFID:</label>
-    <input type="text" name="rfid" required>
-    <button type="submit">🧪 Simuler RFID-skudd</button>
-</form>
-
 <p><strong>IP-adresse:</strong> <code>{{ ip }}</code> eller <code>http://magicmusic.local</code></p>
 
+<p><a href="/help">📖 Bruksanvisning</a></p>
+
+<p><strong>Aktiv lydenhet:</strong>
+  {{ current_sink_friendly if current_sink_friendly else current_sink }}
+</p>
 
 <form method="post" action="/stop" style="margin-top: 1em;">
-  <button type="submit">⏹️ Stopp avspilling</button>
+  <button type="submit" style="background: red; color: white; padding: 0.6em 1em; font-size: 1.2em; border: none; border-radius: 6px;">
+  🟥 Stopp
+</button>
+</form>
+
+<form method="post" action="/set_default_device" style="margin-top: 1em;">
+  <label for="device_name">Velg standard lydenhet:</label>
+  <select name="device_name">
+    {% for device in audio_devices %}
+      <option value="{{ device.name }}" {% if device.name == current_sink %}selected{% endif %}>
+        {{ device.friendly }}
+      </option>
+    {% endfor %}
+  </select>
+  <button type="submit">💾 Lagre som standard lydenhet</button>
 </form>
 
 <form action="/set_volume" method="post" style="margin-top: 1em;">
     <label for="volume">Volum (%):</label>
-    <input type="number" name="volume" min="0" max="150" step="5" value="50">
+    <input type="number" name="volume" min="0" max="150" step="5" value="80">
     <button type="submit">🎚 Sett volum</button>
 </form>
 
@@ -90,11 +102,17 @@ updateRFIDStatus();
     {% for sid, song in songs.items() if sid != 'last_read_rfid' %}
         <tr>
             <td>
-    <form action="/rename_title" method="post" style="display:flex; gap:5px;">
-        <input type="hidden" name="song_id" value="{{ sid }}">
-        <input type="text" name="title" value="{{ song.title if 'title' in song else 'Ukjent' }}" style="flex:1;">
-        <button type="submit" class="button-new">💾</button>
+  {% if request.args.get('edit') == sid %}
+    <form method="post" action="/edit_title" style="display: inline;">
+      <input type="hidden" name="song_id" value="{{ sid }}">
+      <input type="text" name="new_title" value="{{ song.title }}" required>
+      <button type="submit">💾</button>
+      <a href="/">❌</a>
     </form>
+  {% else %}
+    {{ song.title if 'title' in song else 'Ukjent' }}
+    <a href="/?edit={{ sid }}">✏️</a>
+  {% endif %}
 </td>
             <td><a href="{{ song.url }}" target="_blank">Link</a></td>
             <td class="{{ song.status }}">
