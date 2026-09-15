@@ -18,7 +18,8 @@ from utils import (
     skip_to_next_track,
     skip_to_previous_track,
     list_audio_devices_with_friendly_names as list_audio_devices,
-    get_current_default_sink  # ← riktig funksjon her
+    get_current_default_sink,  # ← riktig funksjon her
+    get_current_volume
 )
 
 #13:11
@@ -93,6 +94,7 @@ def index():
     log = load_log()
     audio_devices = list_audio_devices()
     current_sink = get_current_default_sink()
+    current_volume = get_current_volume()
     connected_ssid = get_connected_ssid()
 
     # 🔍 Slå opp friendly name
@@ -110,6 +112,7 @@ def index():
         audio_devices=audio_devices,
         current_sink=current_sink,
         current_sink_friendly=current_sink_friendly,
+        current_volume=current_volume,
         connected_ssid=connected_ssid,
         version=get_git_version()
     )

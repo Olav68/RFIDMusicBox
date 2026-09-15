@@ -1,6 +1,7 @@
 #Utils for RFIDMusicBox
 import os
 import json
+import re
 import socket
 import subprocess
 import time
@@ -39,6 +40,16 @@ def get_current_default_sink():
     except Exception as e:
         append_log(f"❌ Klarte ikke hente aktiv lydenhet: {e}")
         return None
+
+def get_current_volume(default=80):
+    try:
+        result = subprocess.run(["amixer", "get", "Master"], capture_output=True, text=True)
+        match = re.search(r"\[(\d+)%\]", result.stdout)
+        if match:
+            return int(match.group(1))
+    except Exception as e:
+        append_log(f"❌ Klarte ikke hente volum: {e}")
+    return default
 
 def append_log(entry, log_file="/home/magic/programmer/RFIDMusicBox/activity_log.json", max_lines=100):
     try:

@@ -127,8 +127,8 @@ updateRFIDStatus();
 </div>
 
 <form action="/set_volume" method="post" style="margin-top: 1em;">
-    <label for="volume">🎚 Volum: <span id="volume-value">80</span>%</label><br>
-    <input type="range" id="volume" name="volume" min="0" max="150" step="5" value="80"
+    <label for="volume">🎚 Volum: <span id="volume-value">{{ current_volume }}</span>%</label><br>
+    <input type="range" id="volume" name="volume" min="0" max="150" step="5" value="{{ current_volume }}"
            oninput="document.getElementById('volume-value').innerText = this.value"
            onchange="this.form.submit()"
            style="width: 60%; vertical-align: middle;">
