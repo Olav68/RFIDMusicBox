@@ -15,6 +15,8 @@ from utils import (
     download_youtube_playlist,
     play_playlist,
     find_song_by_rfid,
+    skip_to_next_track,
+    skip_to_previous_track,
     list_audio_devices_with_friendly_names as list_audio_devices,
     get_current_default_sink  # ← riktig funksjon her
 )
@@ -490,6 +492,16 @@ def delete_song():
 def stop_song():
     subprocess.run(["pkill", "-f", "mpv"])
     append_log("⏹ Stoppet avspilling")
+    return redirect("/")
+
+@app.route("/skip_next", methods=["POST"])
+def skip_next():
+    skip_to_next_track()
+    return redirect("/")
+
+@app.route("/skip_previous", methods=["POST"])
+def skip_previous():
+    skip_to_previous_track()
     return redirect("/")
 
 @app.route("/set_volume", methods=["POST"])

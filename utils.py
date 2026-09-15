@@ -129,15 +129,25 @@ def _start_mpv(filepaths, label):
     except Exception as e:
         append_log(f"❌ Feil ved avspilling: {e}")
 
+def _send_mpv_command(command):
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+        sock.settimeout(2)
+        sock.connect(_MPV_IPC_SOCKET)
+        sock.sendall((json.dumps({"command": command}) + "\n").encode())
+
 def skip_to_next_track():
     try:
-        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
-            sock.settimeout(2)
-            sock.connect(_MPV_IPC_SOCKET)
-            sock.sendall((json.dumps({"command": ["playlist-next", "weak"]}) + "\n").encode())
+        _send_mpv_command(["playlist-next", "weak"])
         append_log("⏭ Hoppet til neste spor")
     except Exception as e:
         append_log(f"❌ Klarte ikke hoppe til neste spor (spilles det av en spilleliste nå?): {e}")
+
+def skip_to_previous_track():
+    try:
+        _send_mpv_command(["playlist-prev", "weak"])
+        append_log("⏮ Hoppet til forrige spor")
+    except Exception as e:
+        append_log(f"❌ Klarte ikke hoppe til forrige spor (spilles det av en spilleliste nå?): {e}")
 
 def play_song(filepath):
     append_log(f"Starter å spille: {filepath}")
