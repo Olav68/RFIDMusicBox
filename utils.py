@@ -1,6 +1,7 @@
 #Utils for RFIDMusicBox
 import os
 import json
+import socket
 import subprocess
 import time
 import fcntl
@@ -88,6 +89,7 @@ def save_songs(songs, song_file="/home/magic/programmer/RFIDMusicBox/songs.json"
         print(f"❌ Feil ved lagring av sanger: {e}")
 
 _PLAYBACK_LOCK_FILE = "/tmp/.rfidmusicbox_playback.lock"
+_MPV_IPC_SOCKET = "/tmp/.rfidmusicbox_mpv.sock"
 
 def _wait_until_mpv_stopped(timeout=2.0, poll_interval=0.05):
     deadline = time.monotonic() + timeout
@@ -113,9 +115,12 @@ def _start_mpv(filepaths, label):
 
                 # mpv spiller flere filer i rekkefølge som en spilleliste av seg selv
                 # og går videre til neste når én er ferdig - én prosess holder derfor
-                # for både enkeltsanger og hele spillelister.
+                # for både enkeltsanger og hele spillelister. IPC-socket-en lar oss
+                # senere styre den kjørende prosessen (f.eks. hoppe til neste spor)
+                # uten å måtte drepe og starte den på nytt - se skip_to_next_track().
                 subprocess.Popen([
-                    "mpv", "--ao=alsa", "--no-video", "--force-window=no", *filepaths
+                    "mpv", "--ao=alsa", "--no-video", "--force-window=no",
+                    f"--input-ipc-server={_MPV_IPC_SOCKET}", *filepaths
                 ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
                 append_log(f"▶ mpv startet via ALSA: {label}")
@@ -123,6 +128,16 @@ def _start_mpv(filepaths, label):
                 fcntl.flock(lock_file, fcntl.LOCK_UN)
     except Exception as e:
         append_log(f"❌ Feil ved avspilling: {e}")
+
+def skip_to_next_track():
+    try:
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+            sock.settimeout(2)
+            sock.connect(_MPV_IPC_SOCKET)
+            sock.sendall((json.dumps({"command": ["playlist-next", "weak"]}) + "\n").encode())
+        append_log("⏭ Hoppet til neste spor")
+    except Exception as e:
+        append_log(f"❌ Klarte ikke hoppe til neste spor (spilles det av en spilleliste nå?): {e}")
 
 def play_song(filepath):
     append_log(f"Starter å spille: {filepath}")
