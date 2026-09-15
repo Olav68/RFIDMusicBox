@@ -42,6 +42,20 @@ fi
 echo "🔊 Aktiverer linger for $USER_NAME (holder PipeWire i live uten innlogget økt)..."
 sudo loginctl enable-linger "$USER_NAME"
 
+# Uten en eksplisitt polkit-regel krever NetworkManager interaktiv autentisering
+# for nettverkskontroll (org.freedesktop.NetworkManager.network-control m.fl.),
+# noe wifi_watchdog.py og webpanelets WiFi-sider aldri kan svare på siden de
+# kjører som bakgrunnstjenester - AP-modus (oppsetts-hotspot) feiler stille uten
+# dette. Se scripts/polkit/50-rfidmusicbox-networkmanager.rules for detaljer.
+POLKIT_RULE="$REPO_DIR/scripts/polkit/50-rfidmusicbox-networkmanager.rules"
+if [ -f "$POLKIT_RULE" ]; then
+  echo "🌐 Installerer polkit-regel for NetworkManager-tilgang..."
+  sudo cp "$POLKIT_RULE" /etc/polkit-1/rules.d/50-rfidmusicbox-networkmanager.rules
+  sudo systemctl restart polkit
+else
+  echo "⚠️ Fant ikke $POLKIT_RULE - hopper over polkit-regel"
+fi
+
 # Stopper og deaktiverer gamle tjenester
 echo "🧹 Stopper gamle tjenester (hvis de kjører)..."
 for SERVICE in rfid_webpanel rfid_trigger_listener rfid_input_listener rfid_wifi_watchdog rfid_button_listener rfid_auto_update; do

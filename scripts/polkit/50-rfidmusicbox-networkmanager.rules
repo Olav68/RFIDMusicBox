@@ -1,0 +1,17 @@
+// Gir "magic"-brukeren full kontroll over NetworkManager uten interaktiv
+// autentisering. Nødvendig fordi wifi_watchdog.py (starter/stopper
+// oppsetts-hotspot ved manglende internett) og webpanelets WiFi-sider kjører
+// som systemd-tjenester uten noen innlogget/lokal økt - polkit ville ellers
+// krevd passord for org.freedesktop.NetworkManager.network-control m.fl.,
+// noe en bakgrunnstjeneste aldri kan svare på.
+//
+// Uten denne regelen feiler nmcli-kallene i wifi_watchdog.py stille med
+// "Not authorized to control networking" - oppdaget og fikset 2026-09-15 da
+// AP-modus ikke lenger virket etter en reinstallasjon med Raspberry Pi OS
+// Trixie (som ikke lenger inkluderer samme standard polkit-regler for
+// nettverkskontroll som eldre Raspberry Pi OS-versjoner gjorde).
+polkit.addRule(function(action, subject) {
+    if (action.id.indexOf("org.freedesktop.NetworkManager.") == 0 && subject.user == "magic") {
+        return polkit.Result.YES;
+    }
+});

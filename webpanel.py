@@ -246,7 +246,12 @@ def connect_wifi():
 @app.route("/disconnect_wifi", methods=["POST"])
 def disconnect_wifi():
     try:
-        subprocess.run(["nmcli", "connection", "down", "wlan0"], check=True, timeout=10)
+        # "device disconnect" tar ned hva enn som er aktivt på wlan0, uavhengig
+        # av hva selve tilkoblingsprofilen heter (varierer med hvordan den ble
+        # opprettet - f.eks. "netplan-wlan0-<ssid>" fra cloud-init, eller bare
+        # <ssid> fra nmcli/denne siden - "connection down wlan0" antok feilaktig
+        # at profilen alltid het nøyaktig "wlan0").
+        subprocess.run(["nmcli", "device", "disconnect", "wlan0"], check=True, timeout=10)
         append_log("📶 Koblet fra WiFi")
     except Exception as e:
         append_log(f"❌ Klarte ikke koble fra: {e}")
