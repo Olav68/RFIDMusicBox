@@ -156,6 +156,32 @@ def get_now_playing():
             return label or None
     return None
 
+_PARENTAL_LOCK_KEY = "parental_lock_until"
+
+def get_parental_lock_remaining():
+    """Sekunder igjen av foreldrelåsen, eller 0 hvis den ikke er aktiv."""
+    songs = load_songs()
+    until = songs.get(_PARENTAL_LOCK_KEY)
+    if not until:
+        return 0
+    return max(0, until - time.time())
+
+def is_parental_locked():
+    return get_parental_lock_remaining() > 0
+
+def set_parental_lock(hours):
+    songs = load_songs()
+    if hours and hours > 0:
+        songs[_PARENTAL_LOCK_KEY] = time.time() + hours * 3600
+        save_songs(songs)
+        append_log(f"🔒 Foreldrekontroll: spilleren låst i {hours:g} time(r)")
+        # Stopp det som evt. allerede spiller - en ny lås skal virke med det samme.
+        subprocess.call(["pkill", "-f", "mpv"])
+    elif songs.get(_PARENTAL_LOCK_KEY):
+        del songs[_PARENTAL_LOCK_KEY]
+        save_songs(songs)
+        append_log("🔓 Foreldrekontroll: spilleren låst opp")
+
 def _send_mpv_command(command):
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
         sock.settimeout(2)

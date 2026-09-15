@@ -48,6 +48,46 @@
 <div id="status-timestamp" style="font-size: 0.9em; color: #666;"></div>
 
 <script>
+function formatHoursLabel(h) {
+    h = parseFloat(h);
+    if (h === 0) return "Av";
+    const whole = Math.floor(h);
+    const half = h % 1 !== 0;
+    let label = "";
+    if (whole > 0) label += whole + (whole === 1 ? " time" : " timer");
+    if (half) label += (whole > 0 ? " 30 min" : "30 min");
+    return label;
+}
+
+function formatRemaining(seconds) {
+    seconds = Math.max(0, Math.round(seconds));
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h > 0) return `${h}t ${m}min`;
+    if (m > 0) return `${m} min`;
+    return `${seconds} sek`;
+}
+
+let lockRemaining = {{ lock_remaining_seconds }};
+
+function updateLockDisplay() {
+    const statusEl = document.getElementById("lock-status");
+    const unlockForm = document.getElementById("unlock-now-form");
+    if (lockRemaining > 0) {
+        statusEl.innerHTML = "Låst i <strong><span id=\"lock-remaining\">" + formatRemaining(lockRemaining) + "</span></strong> til";
+        unlockForm.hidden = false;
+    } else {
+        statusEl.innerText = "Ikke låst";
+        unlockForm.hidden = true;
+    }
+}
+setInterval(() => {
+    if (lockRemaining > 0) {
+        lockRemaining -= 1;
+        updateLockDisplay();
+    }
+}, 1000);
+
 function updateRFIDStatus() {
     fetch('/status')
         .then(res => res.json())
@@ -57,12 +97,12 @@ function updateRFIDStatus() {
             if (!data.rfid) {
                 div.innerHTML = "📭 Ingen RFID skannet ennå.";
                 timestamp.innerHTML = "";
-                return;
+            } else {
+                const color = data.status === "ready" ? "🟢" : "🔴";
+                const text = data.status === "ready" ? "klar til avspilling" : "ikke koblet eller mangler fil";
+                div.innerHTML = `${color} Siste RFID: <b>${data.rfid}</b> (${text})`;
+                timestamp.innerHTML = "⏱️ Oppdatert: " + new Date().toLocaleTimeString();
             }
-            const color = data.status === "ready" ? "🟢" : "🔴";
-            const text = data.status === "ready" ? "klar til avspilling" : "ikke koblet eller mangler fil";
-            div.innerHTML = `${color} Siste RFID: <b>${data.rfid}</b> (${text})`;
-            timestamp.innerHTML = "⏱️ Oppdatert: " + new Date().toLocaleTimeString();
 
             document.getElementById("skip-previous-form").hidden = !data.playlist_playing;
             document.getElementById("skip-next-form").hidden = !data.playlist_playing;
@@ -72,6 +112,9 @@ function updateRFIDStatus() {
             if (data.now_playing) {
                 document.getElementById("now-playing-title").innerText = data.now_playing;
             }
+
+            lockRemaining = data.lock_remaining_seconds;
+            updateLockDisplay();
         })
         .catch(() => {
             document.getElementById("rfid-status").innerText = "❌ Klarte ikke hente status.";
@@ -146,6 +189,24 @@ updateRFIDStatus();
            onchange="this.form.submit()"
            style="width: 60%; vertical-align: middle;">
 </form>
+
+<div style="background: #fff6e0; border: 1px solid #e6d38a; border-radius: 8px; padding: 1em 1.2em; margin-top: 1.2em; max-width: 500px;">
+  <p style="margin-top:0;"><strong>🔒 Foreldrekontroll</strong></p>
+  <p id="lock-status" style="margin-bottom: 0.8em;">
+    {% if lock_remaining_seconds > 0 %}Låst i <strong><span id="lock-remaining"></span></strong> til{% else %}Ikke låst{% endif %}
+  </p>
+  <form action="/set_parental_lock" method="post" style="margin: 0;">
+    <label for="lock-hours">Lås RFID-avspilling i: <span id="lock-hours-value">Av</span></label><br>
+    <input type="range" id="lock-hours" name="hours" min="0" max="3" step="0.5" value="0"
+           oninput="document.getElementById('lock-hours-value').innerText = formatHoursLabel(this.value)"
+           style="width: 60%; vertical-align: middle;">
+    <button class="btn btn-default" type="submit" style="margin-left: 0.4em;">🔒 Sett lås</button>
+  </form>
+  <form id="unlock-now-form" action="/set_parental_lock" method="post" style="margin-top: 0.6em;"{% if lock_remaining_seconds <= 0 %} hidden{% endif %}>
+    <input type="hidden" name="hours" value="0">
+    <button class="btn btn-default" type="submit">🔓 Lås opp nå</button>
+  </form>
+</div>
 
 <table>
     <thead>

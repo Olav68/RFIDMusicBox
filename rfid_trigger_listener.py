@@ -1,7 +1,7 @@
 # rfid_trigger_listener.py
 import time
 import os
-from utils import load_songs, append_log, play_song, play_playlist, find_song_by_rfid, skip_to_next_track
+from utils import load_songs, append_log, play_song, play_playlist, find_song_by_rfid, skip_to_next_track, is_parental_locked
 
 SONGS_FILE = "/home/magic/programmer/RFIDMusicBox/songs.json"
 STORAGE_DIR = "/home/magic/programmer/RFIDMusicBox/mp3"
@@ -51,6 +51,10 @@ def play_for_rfid(data, rfid_code):
         append_log(f"🚫 Ingen sang knyttet til RFID: {rfid_code}")
 
 def handle_scan(data, rfid_code, is_repeat_of_active):
+    if is_parental_locked():
+        append_log("🔒 Skanning ignorert - foreldrekontroll er aktiv")
+        return
+
     # Skanner man det samme kortet som allerede styrer avspillingen på nytt
     # (etter debounce-vinduet), vil man normalt høre sangen fra start igjen -
     # men for en spilleliste er det mer nyttig å hoppe til neste spor i

@@ -3,12 +3,197 @@
 <head>
     <meta charset="UTF-8">
     <title>Bruksanvisning</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; max-width: 800px; }
+        h1 { color: #333; }
+        h2 { color: #333; margin-top: 1.8em; border-bottom: 2px solid #eee; padding-bottom: 0.3em; }
+        h3 { margin-top: 1.2em; margin-bottom: 0.4em; }
+        .box { background: #f9f9f9; border: 1px solid #ddd; border-radius: 8px; padding: 1em 1.2em; margin: 1em 0; }
+        .tip { background: #eaf6ea; border: 1px solid #bfe3bf; border-radius: 8px; padding: 1em 1.2em; margin: 1em 0; }
+        .warn { background: #fff6e0; border: 1px solid #e6d38a; border-radius: 8px; padding: 1em 1.2em; margin: 1em 0; }
+        code { background: #eee; padding: 0.1em 0.4em; border-radius: 4px; font-size: 0.95em; }
+        ol, ul { padding-left: 1.4em; }
+        li { margin-bottom: 0.4em; }
+        .btn-sample {
+            display: inline-flex; align-items: center; height: 1.8em; padding: 0 0.8em;
+            border-radius: 8px; font-weight: 600; font-size: 0.9em; white-space: nowrap;
+        }
+        .btn-play { background: linear-gradient(to bottom, #4caf50, #2e7d32); color: #fff; }
+        .btn-delete { background: linear-gradient(to bottom, #ef5350, #c62828); color: #fff; }
+        .btn-default { background: linear-gradient(to bottom, #f7f7f7, #dcdcdc); color: #222; border: 1px solid #bbb; }
+        nav { background: #f4f4f4; border-radius: 8px; padding: 1em 1.4em; margin: 1.5em 0; }
+        nav a { display: block; margin: 0.2em 0; }
+    </style>
 </head>
-<body style="font-family: sans-serif; max-width: 800px; margin: auto; padding: 2em;">
-    <h1>Bruksanvisning for Ola's Magiske Spilleboks</h1>
-    <p>PDF-versjonen kan lastes ned her:
-        <a href="/static/Olas_magiske_spilleboks_bruksanvisning.pdf" target="_blank">Last ned PDF</a>
-    </p>
-    <p><a href="/" style="text-decoration: none;">⬅ Tilbake</a></p>
+<body>
+
+<h1>📖 Bruksanvisning</h1>
+<p>Alt du trenger å vite for å bruke Bestefars magiske spilleboks - fra å legge til sanger til å koble til nytt WiFi.</p>
+
+<nav>
+  <strong>Hopp til:</strong>
+  <a href="#legge-til">🎵 Legge til en sang eller spilleliste</a>
+  <a href="#rfid">🪪 Koble et RFID-kort til en sang</a>
+  <a href="#spille">▶️ Spille av musikk</a>
+  <a href="#knapper">🔘 De fysiske knappene på boksen</a>
+  <a href="#panel">🎚 Kontroller i panelet</a>
+  <a href="#wifi">📶 WiFi</a>
+  <a href="#bluetooth">🔵 Bluetooth-høyttaler</a>
+  <a href="#oppdatering">🔄 Oppdatere appen</a>
+  <a href="#feilsoking">❓ Vanlige spørsmål og feilsøking</a>
+</nav>
+
+<h2 id="legge-til">🎵 Legge til en sang eller spilleliste</h2>
+
+<p>Alt starter med en YouTube-lenke. Slik finner du den:</p>
+
+<h3>På mobil (YouTube-appen)</h3>
+<ol>
+  <li>Finn videoen (eller spillelisten) du vil legge til</li>
+  <li>Trykk <strong>Del</strong>-knappen (pil-ikonet under videoen)</li>
+  <li>Velg <strong>Kopier kobling</strong></li>
+</ol>
+
+<h3>I nettleser (PC/Mac/nettbrett)</h3>
+<ol>
+  <li>Åpne videoen på youtube.com</li>
+  <li>Kopier adressen fra adressefeltet øverst, <em>eller</em> trykk <strong>Del</strong> under videoen og velg <strong>Kopier</strong></li>
+</ol>
+
+<div class="tip">
+  <strong>💡 Vil du legge til en hel spilleliste</strong> (f.eks. en lydbok med mange kapitler) i stedet for én sang?
+  Åpne spillelisten på YouTube (ikke bare én video fra den), og kopier <em>den</em> lenken. Appen kjenner igjen
+  en spilleliste automatisk hvis lenken inneholder <code>list=</code> - alle sangene i den lastes ned samlet,
+  og spilles av i riktig rekkefølge (kapittel 1, 2, 3, ...).
+</div>
+
+<h3>Legg den til i panelet</h3>
+<ol>
+  <li>Lim lenken inn i feltet øverst på forsiden</li>
+  <li>Trykk <span class="btn-sample btn-default">💾 Legg til ny sang</span></li>
+  <li>Sangen dukker opp nederst i listen med status <strong>⏳ Henter</strong> mens den lastes ned</li>
+  <li>Når den er ferdig, endres status til <strong>✅ Klar</strong> - da kan du spille den av eller koble den til et RFID-kort</li>
+</ol>
+
+<div class="warn">
+  <strong>⚠️ Blir statusen stående på ❌ Feil?</strong> Da klarte ikke boksen å laste ned videoen (kan skje hvis
+  videoen er slettet, aldersbegrenset, eller ikke er tilgjengelig i Norge). Slett oppføringen og prøv en annen lenke.
+</div>
+
+<p>Du kan når som helst:</p>
+<ul>
+  <li>Endre tittelen på en sang ved å trykke ✏️-blyanten ved siden av navnet</li>
+  <li>Slette en sang eller spilleliste med <span class="btn-sample btn-delete">🗑 Slett</span> (sletter også lydfilene fra boksen, ikke bare fra listen)</li>
+</ul>
+
+<h2 id="rfid">🪪 Koble et RFID-kort til en sang</h2>
+
+<p>Et RFID-kort (eller brikke/nøkkelring) må skannes av boksen <strong>før</strong> du kan koble det til en sang.</p>
+
+<ol>
+  <li>Hold kortet inntil RFID-leseren på boksen til den registrerer det (du ser <em>"Siste RFID: ..."</em> øverst på forsiden oppdatere seg)</li>
+  <li>Finn sangen eller spillelisten du vil koble kortet til i listen</li>
+  <li>Trykk <span class="btn-sample btn-default">Ny</span> i RFID-kolonnen for den sangen</li>
+  <li>Kortet er nå koblet til - skann det igjen for å spille av</li>
+</ol>
+
+<p>Et kort kan kun være koblet til <strong>én</strong> sang om gangen. Vil du koble kortet til noe annet, trykk
+❌ <strong>Slett</strong> ved siden av RFID-koden på den gamle sangen først, skann kortet på nytt, og koble det
+til den nye sangen som beskrevet over.</p>
+
+<h2 id="spille">▶️ Spille av musikk</h2>
+
+<h3>Skann et kort</h3>
+<p>Dette er den vanlige måten å bruke boksen på: hold et koblet RFID-kort inntil leseren, og musikken starter automatisk.</p>
+
+<div class="tip">
+  <strong>💡 Skanner du samme kort på nytt:</strong>
+  <ul>
+    <li>Er det en <strong>enkeltsang</strong>, spilles den av fra begynnelsen igjen</li>
+    <li>Er det en <strong>spilleliste</strong> (f.eks. en lydbok), hopper den i stedet videre til <strong>neste spor</strong> -
+        praktisk for å komme seg gjennom kapitlene uten å måtte skanne et annet kort innimellom</li>
+  </ul>
+  Skanner du et <em>annet</em> kort mens noe spilles av, avbrytes det som spilles og det nye starter i stedet.
+</div>
+
+<h3>Spill av manuelt fra panelet</h3>
+<p>Du trenger ikke et RFID-kort for å høre en sang - trykk bare <span class="btn-sample btn-play">▶ Spill</span>
+ved siden av sangen i listen.</p>
+
+<h2 id="knapper">🔘 De fysiske knappene på boksen</h2>
+<p>Boksen har fire knapper som virker uten å måtte åpne panelet:</p>
+<table style="width:100%; border-collapse: collapse; margin-top: 0.5em;">
+  <tr style="background:#f4f4f4;"><th style="text-align:left; padding:0.4em; border:1px solid #ddd;">Knapp</th><th style="text-align:left; padding:0.4em; border:1px solid #ddd;">Gjør</th></tr>
+  <tr><td style="padding:0.4em; border:1px solid #ddd;">🔊 Volum opp</td><td style="padding:0.4em; border:1px solid #ddd;">Skrur opp lyden litt</td></tr>
+  <tr><td style="padding:0.4em; border:1px solid #ddd;">🔉 Volum ned</td><td style="padding:0.4em; border:1px solid #ddd;">Skrur ned lyden litt</td></tr>
+  <tr><td style="padding:0.4em; border:1px solid #ddd;">⏹ Stopp</td><td style="padding:0.4em; border:1px solid #ddd;">Stopper avspillingen</td></tr>
+  <tr><td style="padding:0.4em; border:1px solid #ddd;">🔁 Spill av igjen</td><td style="padding:0.4em; border:1px solid #ddd;">Spiller sist skannede kort på nytt, fra begynnelsen</td></tr>
+</table>
+
+<h2 id="panel">🎚 Kontroller i panelet</h2>
+<ul>
+  <li><strong>🎚 Volum</strong> - dra glidebryteren for å justere lyden</li>
+  <li><strong>Velg standard lydenhet</strong> - bytt mellom f.eks. innebygd lyd og en tilkoblet Bluetooth-høyttaler</li>
+  <li><strong>⏮ Forrige / 🟥 Stopp / ⏭ Neste</strong> - styrer det som spilles av akkurat nå. Forrige/Neste virker
+      kun når en spilleliste spilles av (har ingen effekt på en enkeltsang)</li>
+</ul>
+
+<h2 id="wifi">📶 WiFi</h2>
+<p>Trykk <span class="btn-sample btn-default">📶 WiFi-innstillinger</span> på forsiden for å:</p>
+<ul>
+  <li>Se hvilket nettverk boksen er koblet til nå</li>
+  <li>Koble til et nytt nettverk (velg fra listen, eller skriv inn navn/passord manuelt)</li>
+  <li>Koble fra nåværende nettverk</li>
+</ul>
+<div class="tip">
+  <strong>💡 Ingen internett hjemme akkurat nå, eller helt nytt sted?</strong> Boksen oppretter automatisk sitt eget
+  WiFi-nett ("<code>RFIDMusicBox-Oppsett</code>") du kan koble telefonen til for å sette opp riktig hjemmenettverk -
+  se den tekniske dokumentasjonen (PDF-en nederst på siden) for detaljer og passord.
+</div>
+
+<h2 id="bluetooth">🔵 Bluetooth-høyttaler</h2>
+<p>Trykk <span class="btn-sample btn-default">🔵 Bluetooth-enheter</span> på forsiden for å:</p>
+<ul>
+  <li><strong>Søke</strong> etter nye høyttalere i nærheten (tar ca. 8 sekunder)</li>
+  <li><strong>Pare</strong> en ny høyttaler med ett trykk</li>
+  <li><strong>Koble til</strong> en høyttaler som allerede er paret fra før (f.eks. etter at den har vært avslått)</li>
+  <li><strong>Sette</strong> en tilkoblet høyttaler som standard lydutgang</li>
+  <li><strong>Fjerne</strong> (glemme) en høyttaler du ikke lenger bruker</li>
+</ul>
+
+<h2 id="oppdatering">🔄 Oppdatere appen</h2>
+<p>Trykk <span class="btn-sample btn-default">🔄 Oppdater app</span> for å hente siste versjon av koden og alle
+oppdateringer. Dette kan ta noen minutter, og boksen <strong>starter seg selv på nytt</strong> etterpå hvis noe
+faktisk ble oppdatert - musikken stopper da et kort øyeblikk. Sanger, spillelister og RFID-koblinger blir ikke
+påvirket.</p>
+<p>Versjonsnummeret vises øverst på forsiden (f.eks. <code>🏷️ Versjon: abc1234</code>) - trykk på det for å se
+hva som er endret i nyeste versjoner.</p>
+
+<h2 id="feilsoking">❓ Vanlige spørsmål og feilsøking</h2>
+
+<h3>Kortet blir registrert, men ingenting spilles av</h3>
+<p>Sjekk at kortet faktisk er koblet til en sang (se <a href="#rfid">koble RFID-kort</a> over). Er kortet nettopp
+skannet på nytt <em>svært</em> kort tid etter forrige gang (under 3 sekunder), ignoreres det bevisst - dette
+hindrer at avspillingen starter på nytt gang på gang bare fordi kortet ligger nær leseren.</p>
+
+<h3>Ingen lyd i det hele tatt</h3>
+<p>Sjekk <strong>Velg standard lydenhet</strong> på forsiden - er riktig høyttaler valgt? Er det en Bluetooth-høyttaler,
+sjekk at den fortsatt er tilkoblet på <a href="#bluetooth">Bluetooth-siden</a>.</p>
+
+<h3>Boksen svarer ikke i nettleseren</h3>
+<p>Sjekk at både boksen og enheten du bruker (PC/mobil) er koblet til samme WiFi-nettverk. Er du usikker på
+adressen, spør den som satte opp boksen om IP-adressen, eller prøv <code>http://magicmusic.local:5000</code>.</p>
+
+<h3>En spilleliste (lydbok) hopper rundt i feil rekkefølge</h3>
+<p>Dette skal ikke skje lenger - spillelister lastes ned og spilles av i riktig kapittelrekkefølge. Opplever du
+dette likevel, si ifra til den som vedlikeholder boksen.</p>
+
+<hr style="margin: 2em 0; border: none; border-top: 1px solid #ddd;">
+
+<p>Vil du grave dypere - hvordan boksen er bygget opp, systemtjenester, AP/hotspot-funksjonen i detalj, eller
+hvordan du kobler deg til med SSH - finnes det en teknisk dokumentasjon her:
+<a href="/static/Olas_magiske_spilleboks_bruksanvisning.pdf" target="_blank">Last ned teknisk PDF</a></p>
+
+<p><a href="/" style="text-decoration: none;">⬅ Tilbake til forsiden</a></p>
 </body>
 </html>

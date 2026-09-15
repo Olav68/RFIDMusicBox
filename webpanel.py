@@ -19,6 +19,8 @@ from utils import (
     skip_to_previous_track,
     is_playlist_playing,
     get_now_playing,
+    get_parental_lock_remaining,
+    set_parental_lock,
     list_audio_devices_with_friendly_names as list_audio_devices,
     get_current_default_sink,  # ← riktig funksjon her
     get_current_volume
@@ -118,6 +120,7 @@ def index():
         connected_ssid=connected_ssid,
         playlist_playing=is_playlist_playing(),
         now_playing=get_now_playing(),
+        lock_remaining_seconds=get_parental_lock_remaining(),
         version=get_git_version()
     )
 
@@ -155,7 +158,8 @@ def status():
         "rfid": rfid,
         "status": "ready" if valid else "missing",
         "playlist_playing": is_playlist_playing(),
-        "now_playing": get_now_playing()
+        "now_playing": get_now_playing(),
+        "lock_remaining_seconds": get_parental_lock_remaining()
     })
 
 @app.route("/log")
@@ -511,6 +515,15 @@ def skip_next():
 @app.route("/skip_previous", methods=["POST"])
 def skip_previous():
     skip_to_previous_track()
+    return redirect("/")
+
+@app.route("/set_parental_lock", methods=["POST"])
+def set_parental_lock_route():
+    try:
+        hours = float(request.form.get("hours", 0))
+    except ValueError:
+        hours = 0
+    set_parental_lock(hours)
     return redirect("/")
 
 @app.route("/set_volume", methods=["POST"])
