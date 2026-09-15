@@ -66,6 +66,12 @@ function updateRFIDStatus() {
 
             document.getElementById("skip-previous-form").hidden = !data.playlist_playing;
             document.getElementById("skip-next-form").hidden = !data.playlist_playing;
+
+            const nowPlaying = document.getElementById("now-playing");
+            nowPlaying.hidden = !data.now_playing;
+            if (data.now_playing) {
+                document.getElementById("now-playing-title").innerText = data.now_playing;
+            }
         })
         .catch(() => {
             document.getElementById("rfid-status").innerText = "❌ Klarte ikke hente status.";
@@ -117,7 +123,11 @@ updateRFIDStatus();
   {{ current_sink_friendly if current_sink_friendly else current_sink }}
 </p>
 
-<div style="display: flex; gap: 0.6em; margin-top: 1em;">
+<p id="now-playing" style="margin-top: 1em; margin-bottom: 0;"{% if not now_playing %} hidden{% endif %}>
+  🎵 Spilles nå: <strong id="now-playing-title">{{ now_playing }}</strong>
+</p>
+
+<div style="display: flex; gap: 0.6em; margin-top: 0.6em;">
   <form id="skip-previous-form" method="post" action="/skip_previous" style="margin: 0;"{% if not playlist_playing %} hidden{% endif %}>
     <button class="btn btn-default" type="submit" title="Forrige spor">⏮ Forrige</button>
   </form>

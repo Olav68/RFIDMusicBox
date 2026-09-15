@@ -18,6 +18,7 @@ from utils import (
     skip_to_next_track,
     skip_to_previous_track,
     is_playlist_playing,
+    get_now_playing,
     list_audio_devices_with_friendly_names as list_audio_devices,
     get_current_default_sink,  # ← riktig funksjon her
     get_current_volume
@@ -116,6 +117,7 @@ def index():
         current_volume=current_volume,
         connected_ssid=connected_ssid,
         playlist_playing=is_playlist_playing(),
+        now_playing=get_now_playing(),
         version=get_git_version()
     )
 
@@ -152,7 +154,8 @@ def status():
     return jsonify({
         "rfid": rfid,
         "status": "ready" if valid else "missing",
-        "playlist_playing": is_playlist_playing()
+        "playlist_playing": is_playlist_playing(),
+        "now_playing": get_now_playing()
     })
 
 @app.route("/log")
@@ -461,10 +464,10 @@ def play_song_route():
 
     if song.get("type") == "playlist" and "playlist_dir" in song:
         folder = os.path.join(STORAGE_DIR, song["playlist_dir"])
-        play_playlist(folder)
+        play_playlist(folder, title=song.get("title"))
     elif song.get("type") == "song" and "filename" in song:
         filepath = os.path.join(STORAGE_DIR, song["filename"])
-        play_song(filepath)
+        play_song(filepath, title=song.get("title"))
     else:
         append_log("⚠️ Ukjent sangtype eller mangler fil/dir")
 

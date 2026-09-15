@@ -101,6 +101,7 @@ def save_songs(songs, song_file="/home/magic/programmer/RFIDMusicBox/songs.json"
 
 _PLAYBACK_LOCK_FILE = "/tmp/.rfidmusicbox_playback.lock"
 _MPV_IPC_SOCKET = "/tmp/.rfidmusicbox_mpv.sock"
+_NOW_PLAYING_FILE = "/tmp/.rfidmusicbox_now_playing.txt"
 
 def _wait_until_mpv_stopped(timeout=2.0, poll_interval=0.05):
     deadline = time.monotonic() + timeout
@@ -134,11 +135,26 @@ def _start_mpv(filepaths, label):
                     f"--input-ipc-server={_MPV_IPC_SOCKET}", *filepaths
                 ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
+                with open(_NOW_PLAYING_FILE, "w") as f:
+                    f.write(label)
+
                 append_log(f"▶ mpv startet via ALSA: {label}")
             finally:
                 fcntl.flock(lock_file, fcntl.LOCK_UN)
     except Exception as e:
         append_log(f"❌ Feil ved avspilling: {e}")
+
+def get_now_playing():
+    # Tittelen på det som faktisk spilles nå, eller None hvis mpv ikke kjører
+    # (f.eks. etter Stopp, eller en spilleliste som er ferdig avspilt).
+    result = subprocess.run(["pgrep", "-f", "mpv"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if result.returncode != 0:
+        return None
+    if os.path.exists(_NOW_PLAYING_FILE):
+        with open(_NOW_PLAYING_FILE, "r") as f:
+            label = f.read().strip()
+            return label or None
+    return None
 
 def _send_mpv_command(command):
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
@@ -182,14 +198,14 @@ def is_playlist_playing():
     except Exception:
         return False
 
-def play_song(filepath):
+def play_song(filepath, title=None):
     append_log(f"Starter å spille: {filepath}")
 
     if not os.path.exists(filepath):
         append_log(f"❌ Fil ikke funnet: {filepath}")
         return
 
-    _start_mpv([filepath], filepath)
+    _start_mpv([filepath], title or filepath)
 
 def find_song_by_rfid(data, rfid_code):
     for key, val in data.items():
@@ -224,7 +240,7 @@ def download_youtube_playlist(url, target_folder):
         append_log(f"❌ Feil ved nedlasting av spilleliste: {e}")
         return False
 
-def play_playlist(folder):
+def play_playlist(folder, title=None):
     if not os.path.exists(folder):
         append_log(f"❌ Spilleliste-mappe ikke funnet: {folder}")
         return
@@ -233,5 +249,6 @@ def play_playlist(folder):
         append_log(f"❌ Ingen mp3-filer funnet i spilleliste: {folder}")
         return
     filepaths = [os.path.join(folder, f) for f in mp3_files]
+    label = title or f"spilleliste ({len(mp3_files)} filer): {folder}"
     append_log(f"▶ Starter spilleliste med {len(mp3_files)} filer: {folder}")
-    _start_mpv(filepaths, f"spilleliste ({len(mp3_files)} filer): {folder}")
+    _start_mpv(filepaths, label)

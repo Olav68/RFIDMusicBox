@@ -37,12 +37,12 @@ def play_for_rfid(data, rfid_code):
         if song.get("type") == "playlist" and "playlist_dir" in song:
             folder = os.path.join(STORAGE_DIR, song["playlist_dir"])
             append_log(f"▶ Spiller spilleliste: {song.get('title', folder)}")
-            play_playlist(folder)
+            play_playlist(folder, title=song.get("title"))
         elif "filename" in song:
             filepath = os.path.join(STORAGE_DIR, song["filename"])
             if os.path.exists(filepath):
                 append_log(f"▶ Spiller: {song.get('title', filepath)}")
-                play_song(filepath)
+                play_song(filepath, title=song.get("title"))
             else:
                 append_log(f"❌ Fil mangler: {filepath}")
         else:

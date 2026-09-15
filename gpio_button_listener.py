@@ -46,11 +46,11 @@ def replay():
     if song.get("type") == "playlist" and "playlist_dir" in song:
         folder = os.path.join(STORAGE_DIR, song["playlist_dir"])
         append_log(f"🔁 Spiller av igjen (knapp): {song.get('title', folder)}")
-        play_playlist(folder)
+        play_playlist(folder, title=song.get("title"))
     elif "filename" in song:
         filepath = os.path.join(STORAGE_DIR, song["filename"])
         append_log(f"🔁 Spiller av igjen (knapp): {song.get('title', filepath)}")
-        play_song(filepath)
+        play_song(filepath, title=song.get("title"))
     else:
         append_log("⚠️ Ingen gyldig kilde for sist spilte sang (knapp)")
 
