@@ -26,7 +26,7 @@ fi
 
 # Stopper og deaktiverer gamle tjenester
 echo "🧹 Stopper gamle tjenester (hvis de kjører)..."
-for SERVICE in rfid_webpanel rfid_trigger_listener rfid_input_listener; do
+for SERVICE in rfid_webpanel rfid_trigger_listener rfid_input_listener rfid_wifi_watchdog; do
   sudo systemctl stop "$SERVICE" 2>/dev/null
   sudo systemctl disable "$SERVICE" 2>/dev/null
 done
@@ -48,7 +48,7 @@ sudo systemctl daemon-reexec
 sudo systemctl daemon-reload
 
 # Aktiver og start tjenestene
-for SERVICE in rfid_webpanel rfid_trigger_listener rfid_input_listener; do
+for SERVICE in rfid_webpanel rfid_trigger_listener rfid_input_listener rfid_wifi_watchdog; do
   if [ -f "/etc/systemd/system/${SERVICE}.service" ]; then
     echo "✅ Aktiverer og restarter $SERVICE"
     sudo systemctl enable "$SERVICE"

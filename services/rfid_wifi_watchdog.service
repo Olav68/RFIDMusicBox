@@ -1,0 +1,14 @@
+[Unit]
+Description=RFID MusicBox WiFi Watchdog (starter eget nett hvis internett mangler)
+After=NetworkManager.service
+Wants=NetworkManager.service
+
+[Service]
+ExecStart=/usr/bin/python3 /home/magic/programmer/RFIDMusicBox/wifi_watchdog.py
+WorkingDirectory=/home/magic/programmer/RFIDMusicBox
+Restart=always
+User=magic
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

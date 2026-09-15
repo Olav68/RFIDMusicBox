@@ -114,6 +114,72 @@ def log():
 def help_page():
     return render_template("help.html")
 
+def get_connected_ssid():
+    try:
+        result = subprocess.run(
+            ["nmcli", "-t", "-f", "active,ssid", "dev", "wifi"],
+            capture_output=True, text=True, timeout=5
+        )
+        for line in result.stdout.splitlines():
+            active, ssid = line.split(":", 1)
+            if active == "yes":
+                return ssid
+    except Exception as e:
+        append_log(f"❌ Feil ved henting av tilkoblet SSID: {e}")
+    return None
+
+def scan_wifi_networks():
+    networks = []
+    try:
+        result = subprocess.run(
+            ["nmcli", "-t", "-f", "SSID,SIGNAL", "dev", "wifi"],
+            capture_output=True, text=True, timeout=10
+        )
+        seen = set()
+        for line in result.stdout.splitlines():
+            parts = line.split(":")
+            if len(parts) < 2:
+                continue
+            ssid, signal = parts[0], parts[1]
+            if ssid and ssid not in seen:
+                seen.add(ssid)
+                networks.append({"ssid": ssid, "signal": signal})
+    except Exception as e:
+        append_log(f"❌ Feil ved skanning av WiFi-nettverk: {e}")
+    return networks
+
+@app.route("/wifi")
+def wifi_settings():
+    connected_ssid = get_connected_ssid()
+    networks = scan_wifi_networks()
+    return render_template("wifi.html", connected=connected_ssid, networks=networks)
+
+@app.route("/connect_wifi", methods=["POST"])
+def connect_wifi():
+    ssid = request.form.get("ssid", "").strip()
+    password = request.form.get("password", "")
+    if not ssid:
+        append_log("❌ Ingen SSID oppgitt for WiFi-tilkobling")
+        return redirect("/wifi")
+    try:
+        subprocess.run(
+            ["nmcli", "dev", "wifi", "connect", ssid, "password", password],
+            check=True, timeout=30
+        )
+        append_log(f"📶 Koblet til WiFi: {ssid}")
+    except Exception as e:
+        append_log(f"❌ Klarte ikke koble til {ssid}: {e}")
+    return redirect("/wifi")
+
+@app.route("/disconnect_wifi", methods=["POST"])
+def disconnect_wifi():
+    try:
+        subprocess.run(["nmcli", "connection", "down", "wlan0"], check=True, timeout=10)
+        append_log("📶 Koblet fra WiFi")
+    except Exception as e:
+        append_log(f"❌ Klarte ikke koble fra: {e}")
+    return redirect("/wifi")
+
 def download_song(song_id, url):
     songs = load_songs()
     if is_youtube_playlist(url):

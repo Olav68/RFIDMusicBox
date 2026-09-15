@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>WiFi-innstillinger</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        h1 { color: #333; }
+        .network { margin-bottom: 0.6em; padding: 0.6em; border: 1px solid #ccc; border-radius: 4px; }
+        .active { background-color: #d0ffd0; }
+        .button-new { background: lightgray; border: none; padding: 0.4em 0.8em; cursor: pointer; }
+        .button-delete { color: white; background: red; border: none; padding: 0.4em 0.8em; cursor: pointer; }
+        .hint { color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+
+<h1>WiFi-innstillinger</h1>
+
+{% if connected %}
+  <p>🔌 Tilkoblet til: <strong>{{ connected }}</strong></p>
+  <form method="post" action="/disconnect_wifi">
+    <button class="button-delete" type="submit">❌ Koble fra</button>
+  </form>
+{% else %}
+  <p>❌ Ikke tilkoblet til noe nettverk</p>
+  <p class="hint">Hvis siden er åpnet via Pi-ens eget nett ("RFIDMusicBox-Oppsett"), vil den koble seg til det nye
+     nettverket under og forlate sitt eget nett - koble telefonen/PC-en til det nye nettverket etterpå.</p>
+{% endif %}
+
+<h2>Tilgjengelige nettverk</h2>
+<p class="hint">Skanning kan gi tomme resultater mens Pi-en kjører sitt eget oppsettsnett - skriv inn navn og
+   passord manuelt under om ønsket nettverk ikke vises.</p>
+{% for net in networks %}
+  <div class="network {% if net.ssid == connected %}active{% endif %}">
+    <form method="post" action="/connect_wifi">
+      <strong>{{ net.ssid }}</strong> – Signal: {{ net.signal }}
+      <input type="hidden" name="ssid" value="{{ net.ssid }}">
+      <input type="password" name="password" placeholder="Passord" required>
+      <button class="button-new" type="submit">Koble til</button>
+    </form>
+  </div>
+{% endfor %}
+
+<h2>Koble til manuelt</h2>
+<form method="post" action="/connect_wifi">
+  <label for="ssid">Nettverksnavn (SSID):</label><br>
+  <input type="text" id="ssid" name="ssid" required style="width: 60%"><br>
+  <label for="password">Passord:</label><br>
+  <input type="password" id="password" name="password" style="width: 60%"><br>
+  <button class="button-new" type="submit" style="margin-top: 0.5em;">💾 Koble til</button>
+</form>
+
+<p><a href="/">← Tilbake til forsiden</a></p>
+</body>
+</html>
