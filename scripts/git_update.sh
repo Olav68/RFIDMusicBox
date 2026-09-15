@@ -24,6 +24,8 @@ fi
 
 echo "⬇️ Ny versjon funnet ($LOCAL -> $REMOTE), oppdaterer..."
 git reset --hard origin/main
-timeout "$TIMEOUT" pip install -r requirements.txt --quiet 2>/dev/null
+# --break-system-packages: Raspberry Pi OS Bookworm nekter system-wide pip-installer
+# ellers (PEP 668) - tjenestene kjører direkte mot /usr/bin/python3, ikke et venv.
+timeout "$TIMEOUT" pip install -r requirements.txt --break-system-packages --quiet 2>/dev/null
 echo "✅ Oppdatert til $(git rev-parse HEAD)"
 echo "UPDATED"
