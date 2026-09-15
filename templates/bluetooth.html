@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <title>Bluetooth-enheter</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        h1 { color: #333; }
+        .device { margin-bottom: 0.6em; padding: 0.6em; border: 1px solid #ccc; border-radius: 4px; }
+        .connected { background-color: #d0ffd0; }
+        .button-new { background: lightgray; border: none; padding: 0.4em 0.8em; cursor: pointer; }
+        .button-delete { color: white; background: red; border: none; padding: 0.4em 0.8em; cursor: pointer; }
+        .hint { color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+
+<h1>Bluetooth-enheter</h1>
+
+<form method="post" action="/bluetooth/scan"
+      onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').innerText='🔍 Søker (ca. 8 sek)...'; return true;">
+  <button class="button-new" type="submit">🔍 Søk etter nye enheter</button>
+</form>
+<p class="hint">Søket tar noen sekunder og panelet svarer ikke før det er ferdig.</p>
+
+<h2>Parede enheter</h2>
+{% if not paired %}
+  <p>Ingen parede enheter ennå.</p>
+{% endif %}
+{% for d in paired %}
+  <div class="device {% if d.connected %}connected{% endif %}">
+    <strong>{{ d.name }}</strong> ({{ d.addr }})
+    {% if d.connected %}
+      – 🟢 Tilkoblet
+    {% else %}
+      – ⚪ Ikke tilkoblet
+      <form method="post" action="/bluetooth/connect" style="display:inline">
+        <input type="hidden" name="addr" value="{{ d.addr }}">
+        <button class="button-new" type="submit">Koble til</button>
+      </form>
+    {% endif %}
+    {% if d.sink %}
+      <form method="post" action="/set_default_device" style="display:inline">
+        <input type="hidden" name="device_name" value="{{ d.sink }}">
+        <button class="button-new" type="submit">🔊 Bruk som lydutgang</button>
+      </form>
+    {% endif %}
+    <form method="post" action="/bluetooth/remove" style="display:inline">
+      <input type="hidden" name="addr" value="{{ d.addr }}">
+      <button class="button-delete" type="submit">❌ Fjern</button>
+    </form>
+  </div>
+{% endfor %}
+
+<h2>Nye enheter funnet</h2>
+<p class="hint">Sørg for at høyttaleren er i paringsmodus, trykk "Søk etter nye enheter" over, og den bør dukke opp her.</p>
+{% if not discovered %}
+  <p>Ingen nye enheter funnet.</p>
+{% endif %}
+{% for d in discovered %}
+  <div class="device">
+    <strong>{{ d.name }}</strong> ({{ d.addr }})
+    <form method="post" action="/bluetooth/pair" style="display:inline">
+      <input type="hidden" name="addr" value="{{ d.addr }}">
+      <button class="button-new" type="submit">🔗 Par</button>
+    </form>
+  </div>
+{% endfor %}
+
+<p><a href="/">← Tilbake til forsiden</a></p>
+</body>
+</html>

@@ -7,6 +7,7 @@ Et Raspberry Pi-basert musikksystem for barn, som spiller av sanger når man ska
 - 🎵 Skann et RFID-kort → spill av tilkoblet sang eller spilleliste
 - 🌐 Webgrensesnitt for administrasjon av sanger, spillelister og kort
 - ✅ Automatisk nedlasting av MP3 fra YouTube (enkeltsanger og spillelister)
+- 🔵 Søk etter, par og koble til nye Bluetooth-høyttalere fra panelet
 - 🔈 Velg aktiv lydutgang (f.eks. Bluetooth-høyttaler) fra panelet
 - 🔊 Volumkontroll og avspillingsstyring
 - 🪪 Koble eller fjern RFID-koder enkelt
@@ -19,7 +20,7 @@ Et Raspberry Pi-basert musikksystem for barn, som spiller av sanger når man ska
 - Raspberry Pi (anbefalt Pi 3 eller nyere)
 - Python 3.10+
 - RFID-leser (USB-emulerende tastatur, f.eks. 13.56 MHz USB)
-- `mpv`, `yt-dlp`, `ffmpeg` og PulseAudio (`pactl`) installert på systemet
+- `mpv`, `yt-dlp`, `ffmpeg`, PulseAudio (`pactl`) og BlueZ (`bluetoothctl`) installert på systemet
 - NetworkManager (`nmcli`) må styre WiFi-grensesnittet — standard på Raspberry Pi OS Bookworm; på eldre
   utgaver må det installeres og `dhcpcd` sin kontroll over `wlan0` deaktiveres
 - Høyttaler (Bluetooth eller jack)
@@ -72,6 +73,21 @@ du kan prøve igjen.
 Wifi-siden i panelet (`/wifi`) viser skannede nettverk, men kan gi tomme resultater mens Pi-en selv kjører sitt
 eget hotspot (radioen kan vanligvis ikke skanne og være hotspot samtidig) — bruk da feltet for manuell
 tilkobling med nettverksnavn og passord.
+
+## 🔵 Bluetooth-høyttalere
+
+Siden `/bluetooth` i panelet lar deg:
+
+- Søke etter nye enheter (tar ca. 8 sekunder - panelet svarer ikke før søket er ferdig)
+- Pare, stole på og koble til en funnet enhet med ett trykk
+- Koble til en allerede paret enhet på nytt (f.eks. etter at den har vært av)
+- Sette en tilkoblet Bluetooth-høyttaler som standard lydutgang direkte fra siden
+- Fjerne (glemme) en paret enhet
+
+Dette bruker `bluetoothctl` direkte og forutsetter at BlueZ er installert og kjører (`bluetoothd`), som er
+standard på Raspberry Pi OS med innebygd eller USB-Bluetooth. Den samme "velg standard lydutgang"-dropdownen
+på forsiden fantes allerede fra før og fungerer uavhengig av denne siden - `/bluetooth` gjør det i tillegg
+mulig å pare en helt ny høyttaler i utgangspunktet.
 
 ## 🔄 Oppdatering av kode
 

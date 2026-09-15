@@ -47,6 +47,7 @@ def index():
     log = load_log()
     audio_devices = list_audio_devices()
     current_sink = get_current_default_sink()
+    connected_ssid = get_connected_ssid()
 
     # 🔍 Slå opp friendly name
     current_sink_friendly = None
@@ -62,7 +63,8 @@ def index():
         log=log,
         audio_devices=audio_devices,
         current_sink=current_sink,
-        current_sink_friendly=current_sink_friendly
+        current_sink_friendly=current_sink_friendly,
+        connected_ssid=connected_ssid
     )
 
 @app.route("/set_default_device", methods=["POST"])
@@ -204,6 +206,120 @@ def disconnect_wifi():
     except Exception as e:
         append_log(f"❌ Klarte ikke koble fra: {e}")
     return redirect("/wifi")
+
+def _parse_bluetoothctl_devices(output):
+    devices = []
+    for line in output.splitlines():
+        if line.startswith("Device"):
+            parts = line.split(" ", 2)
+            if len(parts) == 3:
+                devices.append({"addr": parts[1], "name": parts[2]})
+    return devices
+
+def get_paired_bluetooth_devices():
+    try:
+        result = subprocess.run(
+            ["bluetoothctl", "paired-devices"], capture_output=True, text=True, timeout=10
+        )
+        return _parse_bluetoothctl_devices(result.stdout)
+    except Exception as e:
+        append_log(f"❌ Feil ved henting av parede Bluetooth-enheter: {e}")
+        return []
+
+def get_connected_bluetooth_addrs():
+    try:
+        result = subprocess.run(
+            ["bluetoothctl", "devices", "Connected"], capture_output=True, text=True, timeout=10
+        )
+        return {d["addr"] for d in _parse_bluetoothctl_devices(result.stdout)}
+    except Exception:
+        return set()
+
+def get_all_known_bluetooth_devices():
+    try:
+        result = subprocess.run(
+            ["bluetoothctl", "devices"], capture_output=True, text=True, timeout=10
+        )
+        return _parse_bluetoothctl_devices(result.stdout)
+    except Exception as e:
+        append_log(f"❌ Feil ved henting av Bluetooth-enheter: {e}")
+        return []
+
+def find_pulse_sink_for_bluetooth(addr):
+    # PulseAudio/PipeWire navngir Bluetooth-sinker etter MAC-adressen med
+    # kolon byttet ut med understrek, f.eks. bluez_sink.AA_BB_CC_DD_EE_FF.a2dp_sink
+    mac_pattern = addr.replace(":", "_")
+    for device in list_audio_devices():
+        if mac_pattern in device.get("name", ""):
+            return device["name"]
+    return None
+
+@app.route("/bluetooth")
+def bluetooth_settings():
+    paired = get_paired_bluetooth_devices()
+    paired_addrs = {d["addr"] for d in paired}
+    connected_addrs = get_connected_bluetooth_addrs()
+    for d in paired:
+        d["connected"] = d["addr"] in connected_addrs
+        d["sink"] = find_pulse_sink_for_bluetooth(d["addr"]) if d["connected"] else None
+
+    discovered = [
+        d for d in get_all_known_bluetooth_devices() if d["addr"] not in paired_addrs
+    ]
+
+    return render_template("bluetooth.html", paired=paired, discovered=discovered)
+
+@app.route("/bluetooth/scan", methods=["POST"])
+def bluetooth_scan():
+    append_log("🔍 Søker etter Bluetooth-enheter (ca. 8 sekunder)...")
+    try:
+        subprocess.run(
+            ["bluetoothctl", "--timeout", "8", "scan", "on"],
+            capture_output=True, text=True, timeout=15
+        )
+        append_log("✅ Bluetooth-søk fullført")
+    except Exception as e:
+        append_log(f"❌ Feil ved søk etter Bluetooth-enheter: {e}")
+    return redirect("/bluetooth")
+
+@app.route("/bluetooth/pair", methods=["POST"])
+def bluetooth_pair():
+    addr = request.form.get("addr", "").strip()
+    if not addr:
+        append_log("❌ Ingen Bluetooth-adresse oppgitt for paring")
+        return redirect("/bluetooth")
+    try:
+        subprocess.run(["bluetoothctl", "pair", addr], check=True, timeout=20)
+        subprocess.run(["bluetoothctl", "trust", addr], check=True, timeout=10)
+        subprocess.run(["bluetoothctl", "connect", addr], check=True, timeout=15)
+        append_log(f"🔵 Paret og koblet til Bluetooth-enhet: {addr}")
+    except Exception as e:
+        append_log(f"❌ Klarte ikke pare Bluetooth-enhet {addr}: {e}")
+    return redirect("/bluetooth")
+
+@app.route("/bluetooth/connect", methods=["POST"])
+def bluetooth_connect():
+    addr = request.form.get("addr", "").strip()
+    if not addr:
+        return redirect("/bluetooth")
+    try:
+        subprocess.run(["bluetoothctl", "connect", addr], check=True, timeout=15)
+        append_log(f"🔵 Koblet til Bluetooth-enhet: {addr}")
+    except Exception as e:
+        append_log(f"❌ Klarte ikke koble til Bluetooth-enhet {addr}: {e}")
+    return redirect("/bluetooth")
+
+@app.route("/bluetooth/remove", methods=["POST"])
+def bluetooth_remove():
+    addr = request.form.get("addr", "").strip()
+    if not addr:
+        return redirect("/bluetooth")
+    try:
+        subprocess.run(["bluetoothctl", "remove", addr], check=True, timeout=10)
+        append_log(f"🗑 Fjernet Bluetooth-enhet: {addr}")
+    except Exception as e:
+        append_log(f"❌ Klarte ikke fjerne Bluetooth-enhet {addr}: {e}")
+    return redirect("/bluetooth")
 
 def download_song(song_id, url):
     songs = load_songs()
