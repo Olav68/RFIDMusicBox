@@ -137,7 +137,7 @@ updateRFIDStatus();
         </tr>
     </thead>
     <tbody>
-    {% for sid, song in songs.items() if sid != 'last_read_rfid' %}
+    {% for sid, song in songs.items() if song is mapping %}
         <tr>
             <td>
   {% if request.args.get('edit') == sid %}
