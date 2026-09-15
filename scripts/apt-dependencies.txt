@@ -1,0 +1,26 @@
+# Systempakker RFIDMusicBox trenger, ut over det som følger med Raspberry Pi OS Lite.
+# Én pakke per linje, # for kommentar. Brukes av:
+#   - scripts/installer_tjenester.sh (førstegangsoppsett / manuell kjøring)
+#   - scripts/git_update.sh --full (sjekkes på nytt hver gang "Oppdater app" trykkes,
+#     slik at en pakke lagt til her senere også installeres på eksisterende enheter)
+#   - scripts/cloud-init/user-data.example (headless førstegangs-image, se README)
+# Hold denne i sync med cloud-init-malen hvis du endrer noe her.
+
+git
+mpv
+ffmpeg
+unzip
+python3-pip
+python3-gpiozero
+
+# Bluetooth (for /bluetooth-siden i panelet)
+bluez
+libspa-0.2-bluetooth
+
+# Lyd - PipeWire/PulseAudio-kompatibelt lag. pactl (brukt av utils.py for å liste og
+# velge lydenheter) kommer fra pulseaudio-utils, ikke fra pipewire-pulse selv.
+pipewire
+pipewire-pulse
+wireplumber
+pipewire-audio-client-libraries
+pulseaudio-utils

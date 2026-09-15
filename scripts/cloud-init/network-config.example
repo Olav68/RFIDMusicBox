@@ -1,0 +1,14 @@
+# Mal for headless WiFi-oppsett, se README.md "Reinstallere Pi-en fra bunnen av
+# (headless)". Kopier til roten av boot-partisjonen (sammen med user-data), fjern
+# ".example" fra filnavnet, og fyll inn ditt eget nettverksnavn/passord/landkode.
+
+network:
+  version: 2
+  wifis:
+    wlan0:
+      dhcp4: true
+      optional: false
+      access-points:
+        "CHANGE_ME_SSID":
+          password: "CHANGE_ME_PASSWORD"
+      regulatory-domain: "NO"

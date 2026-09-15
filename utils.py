@@ -97,13 +97,7 @@ def _wait_until_mpv_stopped(timeout=2.0, poll_interval=0.05):
             return
         time.sleep(poll_interval)
 
-def play_song(filepath):
-    append_log(f"Starter å spille: {filepath}")
-
-    if not os.path.exists(filepath):
-        append_log(f"❌ Fil ikke funnet: {filepath}")
-        return
-
+def _start_mpv(filepaths, label):
     try:
         # webpanel.py (flere samtidige forespørsler i egne tråder) og
         # rfid_trigger_listener.py (egen prosess) kan begge kalle denne
@@ -117,15 +111,27 @@ def play_song(filepath):
                 _wait_until_mpv_stopped()
                 append_log("🔇 Tidligere mpv-prosess stoppet")
 
+                # mpv spiller flere filer i rekkefølge som en spilleliste av seg selv
+                # og går videre til neste når én er ferdig - én prosess holder derfor
+                # for både enkeltsanger og hele spillelister.
                 subprocess.Popen([
-                    "mpv", "--ao=alsa", "--no-video", "--force-window=no", filepath
+                    "mpv", "--ao=alsa", "--no-video", "--force-window=no", *filepaths
                 ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-                append_log(f"▶ mpv startet via ALSA: {filepath}")
+                append_log(f"▶ mpv startet via ALSA: {label}")
             finally:
                 fcntl.flock(lock_file, fcntl.LOCK_UN)
     except Exception as e:
-        append_log(f"❌ Feil ved avspilling i play_song(): {e}")
+        append_log(f"❌ Feil ved avspilling: {e}")
+
+def play_song(filepath):
+    append_log(f"Starter å spille: {filepath}")
+
+    if not os.path.exists(filepath):
+        append_log(f"❌ Fil ikke funnet: {filepath}")
+        return
+
+    _start_mpv([filepath], filepath)
 
 def find_song_by_rfid(data, rfid_code):
     for key, val in data.items():
@@ -161,8 +167,9 @@ def play_playlist(folder):
         append_log(f"❌ Spilleliste-mappe ikke funnet: {folder}")
         return
     mp3_files = sorted([f for f in os.listdir(folder) if f.endswith(".mp3")])
+    if not mp3_files:
+        append_log(f"❌ Ingen mp3-filer funnet i spilleliste: {folder}")
+        return
+    filepaths = [os.path.join(folder, f) for f in mp3_files]
     append_log(f"▶ Starter spilleliste med {len(mp3_files)} filer: {folder}")
-    for mp3 in mp3_files:
-        filepath = os.path.join(folder, mp3)
-        append_log(f"▶ Spiller fra liste: {mp3}")
-        play_song(filepath)
+    _start_mpv(filepaths, f"spilleliste ({len(mp3_files)} filer): {folder}")

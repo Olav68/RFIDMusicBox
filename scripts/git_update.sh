@@ -48,6 +48,20 @@ fi
 if $FULL; then
     echo "📦 Sjekker systempakker (apt)..."
     if timeout "$APT_TIMEOUT" sudo apt-get update -qq; then
+        # Sikrer at alle pakker i apt-dependencies.txt er installert - fanger opp
+        # avhengigheter lagt til her etter at denne enheten ble satt opp første gang,
+        # ikke bare oppgradering av det som allerede fantes.
+        DEPS_FILE="$REPO_DIR/scripts/apt-dependencies.txt"
+        if [ -f "$DEPS_FILE" ]; then
+            INSTALL_OUT=$(timeout "$APT_TIMEOUT" sudo apt-get install -y -qq \
+                $(grep -vE '^\s*#|^\s*$' "$DEPS_FILE") 2>&1)
+            INSTALLED_COUNT=$(echo "$INSTALL_OUT" | grep -oE "[0-9]+ newly installed" | grep -oE "^[0-9]+")
+            if [ -n "$INSTALLED_COUNT" ] && [ "$INSTALLED_COUNT" -gt 0 ]; then
+                echo "✅ $INSTALLED_COUNT ny(e) systemavhengighet(er) installert"
+                CHANGED=true
+            fi
+        fi
+
         UPGRADE_OUT=$(timeout "$APT_TIMEOUT" sudo apt-get upgrade -y -qq \
             -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold 2>&1)
         UPGRADED_COUNT=$(echo "$UPGRADE_OUT" | grep -oE "^[0-9]+ upgraded" | grep -oE "^[0-9]+")

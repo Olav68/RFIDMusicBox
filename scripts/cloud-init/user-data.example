@@ -1,0 +1,49 @@
+#cloud-config
+# Mal for headless førstegangsoppsett av RFIDMusicBox-Pi-en med Raspberry Pi OS
+# Lite (64-bit, Debian Trixie eller nyere). Se README.md "Reinstallere Pi-en fra
+# bunnen av (headless)" for full fremgangsmåte.
+#
+# Kopier denne filen (og network-config.example) til roten av boot-partisjonen på
+# et FERSKT skrevet SD-kort, fjern ".example" fra filnavnet, fyll inn din egen
+# SSH-nøkkel og passord under, og boot Pi-en. Etter ca. 5-10 minutter er koden
+# klonet, alle systemavhengigheter installert, og alle tjenester i gang -
+# eneste manuelle steg igjen er å gjenopprette songs.json/activity_log.json/mp3/
+# fra en sikkerhetskopi om du har en (se README).
+
+hostname: magicmusic
+manage_etc_hosts: true
+timezone: Europe/Oslo
+
+users:
+  - name: magic
+    groups: users,adm,dialout,audio,netdev,video,plugdev,cdrom,games,input,gpio,spi,i2c,render,sudo
+    shell: /bin/bash
+    lock_passwd: false
+    # Bytt ut med ditt eget passord (kun til lokal konsoll/sudo-fallback - SSH bruker
+    # utelukkende nøkkelen under).
+    plain_text_passwd: CHANGE_ME
+    ssh_authorized_keys:
+      # Bytt ut med din egen offentlige nøkkel, f.eks. innholdet av
+      # ~/.ssh/id_ed25519_rfidmusicbox.pub
+      - ssh-ed25519 AAAA...CHANGE_ME olav-mac-to-rfidmusicbox
+
+enable_ssh: true
+ssh_pwauth: false
+
+# Kun det strengt nødvendige for at runcmd under skal kunne klone repoet - resten av
+# systemavhengighetene (mpv, ffmpeg, PipeWire osv.) installeres av
+# scripts/apt-dependencies.txt via installer_tjenester.sh lenger ned, så vi slipper
+# å holde to lister i sync.
+packages:
+  - git
+
+# Kjøres som root ved første oppstart, én gang. Kloner repoet, retter eierskap til
+# "magic"-brukeren (git clone her kjører som root), og lar installer_tjenester.sh
+# gjøre resten: apt-avhengigheter, systemd-tjenester, sudoers, og "linger" (holder
+# PipeWire/lyd i live uten innlogget økt - kritisk på en headless boks).
+runcmd:
+  - loginctl enable-linger magic
+  - mkdir -p /home/magic/programmer
+  - git clone https://github.com/Olav68/RFIDMusicBox.git /home/magic/programmer/RFIDMusicBox
+  - chown -R magic:magic /home/magic/programmer
+  - bash /home/magic/programmer/RFIDMusicBox/scripts/installer_tjenester.sh

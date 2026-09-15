@@ -184,19 +184,36 @@ pinner.
   slik at manglende nett ikke forsinker oppstarten unødig - tjenestene starter uansett med det som allerede
   ligger på disk.
 - **Manuelt fra panelet (full oppdatering):** knappen "🔄 Oppdater app" på forsiden kjører scriptet med
-  `--full`, som i tillegg oppdaterer systempakker via `apt-get update && apt-get upgrade` (mpv, ffmpeg, BlueZ,
-  osv.). Dette kan ta flere minutter, så det kjøres i bakgrunnen - panelet henger ikke og venter. Python-
-  avhengighetene oppdateres nå alltid (også `yt-dlp`, som trenger jevnlige oppdateringer for at
-  YouTube-nedlasting skal fortsette å fungere), selv om appens egen kode ikke har endret seg. Er noe som helst
-  endret (kode, Python-pakker eller systempakker), **restarter Pi-en seg selv** noen sekunder senere for å ta
-  alt i bruk. Er alt allerede oppdatert, skjer ingenting utover en loggmelding.
+  `--full`, som i tillegg (1) **installerer** alle pakker fra `scripts/apt-dependencies.txt` som ennå ikke
+  finnes på enheten - slik at en avhengighet lagt til her etter at boksen ble satt opp, faktisk dukker opp på
+  eksisterende enheter, ikke bare på nye installasjoner - og (2) **oppgraderer** alle installerte systempakker
+  via `apt-get upgrade` (mpv, ffmpeg, BlueZ, PipeWire, osv.). Dette kan ta flere minutter, så det kjøres i
+  bakgrunnen - panelet henger ikke og venter. Python-avhengighetene oppdateres nå alltid (også `yt-dlp`, som
+  trenger jevnlige oppdateringer for at YouTube-nedlasting skal fortsette å fungere), selv om appens egen kode
+  ikke har endret seg. Er noe som helst endret (kode, Python-pakker eller systempakker), **restarter Pi-en seg
+  selv** noen sekunder senere for å ta alt i bruk. Er alt allerede oppdatert, skjer ingenting utover en
+  loggmelding.
 
-Restart skjer via `sudo systemctl reboot`, og systempakke-oppdatering via `sudo apt-get update`/`apt-get upgrade`
-— webpanel-prosessen (kjører ikke-interaktivt, kan ikke skrive inn et passord) trenger passordløs tilgang til
-nøyaktig disse tre kommandoene. `scripts/installer_tjenester.sh` setter opp denne sudoers-regelen automatisk;
-ingen andre `apt-get`-underkommandoer (som `install`/`remove`/`purge`) gis tilgang. Merk at dette er en bredere
-sudo-tilgang enn tidligere versjoner av prosjektet (som kun ga `systemctl reboot`) — en bevisst avveining for å
-få automatiske systemoppdateringer, se commit-historikken for bakgrunn.
+Restart skjer via `sudo systemctl reboot`, og systempakke-håndtering via `sudo apt-get update`/`upgrade`/
+`install` — webpanel-prosessen (kjører ikke-interaktivt, kan ikke skrive inn et passord) trenger passordløs
+tilgang til nøyaktig disse fire kommandoene. `scripts/installer_tjenester.sh` setter opp denne sudoers-regelen
+automatisk; `remove`/`purge` gis ikke tilgang. Merk at dette er en bredere sudo-tilgang enn tidligere versjoner
+av prosjektet (som kun ga `systemctl reboot`) — en bevisst avveining for å få automatiske systemoppdateringer
+og -installasjoner, se commit-historikken for bakgrunn.
+
+### Systemavhengigheter
+
+`scripts/apt-dependencies.txt` er eneste kilde til sannhet for hvilke apt-pakker RFIDMusicBox trenger utover
+det Raspberry Pi OS Lite kommer med (mpv, ffmpeg, git, PipeWire/PulseAudio-verktøy for lydstyring, BlueZ,
+osv.). Den brukes av:
+
+- `scripts/installer_tjenester.sh` — installeres ved førstegangsoppsett og hver gang scriptet kjøres på nytt
+- `scripts/git_update.sh --full` — sjekkes på nytt hver gang "Oppdater app" trykkes, se over
+- `scripts/cloud-init/user-data.example` — headless førstegangs-image, se under
+
+Trenger appen en ny systempakke i fremtiden: legg den til i `scripts/apt-dependencies.txt`, så plukkes den
+opp automatisk på alle eksisterende enheter neste gang noen trykker "Oppdater app" - ingen manuell SSH-økt
+nødvendig.
 
 ## 📁 Filstruktur
 
