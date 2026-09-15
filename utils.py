@@ -2,6 +2,8 @@
 import os
 import json
 import subprocess
+import time
+import fcntl
 from datetime import datetime
 from urllib.parse import urlparse, parse_qs
 
@@ -85,6 +87,16 @@ def save_songs(songs, song_file="/home/magic/programmer/RFIDMusicBox/songs.json"
     except Exception as e:
         print(f"❌ Feil ved lagring av sanger: {e}")
 
+_PLAYBACK_LOCK_FILE = "/tmp/.rfidmusicbox_playback.lock"
+
+def _wait_until_mpv_stopped(timeout=2.0, poll_interval=0.05):
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        result = subprocess.run(["pgrep", "-f", "mpv"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if result.returncode != 0:
+            return
+        time.sleep(poll_interval)
+
 def play_song(filepath):
     append_log(f"Starter å spille: {filepath}")
 
@@ -93,14 +105,25 @@ def play_song(filepath):
         return
 
     try:
-        subprocess.call(["pkill", "-f", "mpv"])
-        append_log("🔇 Tidligere mpv-prosess stoppet")
+        # webpanel.py (flere samtidige forespørsler i egne tråder) og
+        # rfid_trigger_listener.py (egen prosess) kan begge kalle denne
+        # samtidig. Uten en lås kan to kall begge se "ingen mpv kjører"
+        # rett etter at de har drept den forrige, og starte hver sin nye
+        # prosess samtidig - sangen spilles da av to ganger på én gang.
+        with open(_PLAYBACK_LOCK_FILE, "w") as lock_file:
+            fcntl.flock(lock_file, fcntl.LOCK_EX)
+            try:
+                subprocess.call(["pkill", "-f", "mpv"])
+                _wait_until_mpv_stopped()
+                append_log("🔇 Tidligere mpv-prosess stoppet")
 
-        subprocess.Popen([
-            "mpv", "--ao=alsa", "--no-video", "--force-window=no", filepath
-        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                subprocess.Popen([
+                    "mpv", "--ao=alsa", "--no-video", "--force-window=no", filepath
+                ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-        append_log(f"▶ mpv startet via ALSA: {filepath}")
+                append_log(f"▶ mpv startet via ALSA: {filepath}")
+            finally:
+                fcntl.flock(lock_file, fcntl.LOCK_UN)
     except Exception as e:
         append_log(f"❌ Feil ved avspilling i play_song(): {e}")
 
