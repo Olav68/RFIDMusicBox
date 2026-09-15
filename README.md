@@ -57,7 +57,7 @@ RFIDMusicBox/
 ├── scripts/                     # Installasjons- og driftsscript
 ├── templates/                   # HTML-filer for webpanelet
 ├── static/                      # PDF-bruksanvisning
-├── mp3/                         # Lokalt lagrede sanger og spillelister (ikke i git)
+├── mp3/                         # Nedlastede sanger og spillelister (mappen er i git, innholdet er git-ignorert)
 ├── songs.json                   # Koblede sanger og RFID-koder (ikke i git)
 └── activity_log.json            # Logg over aktivitet (ikke i git)
 ```

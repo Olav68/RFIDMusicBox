@@ -22,7 +22,6 @@ app = Flask(__name__)
 
 STORAGE_DIR = "/home/magic/programmer/RFIDMusicBox/mp3"
 SONGS_FILE = "/home/magic/programmer/RFIDMusicBox/songs.json"
-MUSIC_DIR = "/home/magic/programmer/RFIDMusicBox/music"
 
 @app.route("/edit_title", methods=["POST"])
 def edit_title():
