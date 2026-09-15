@@ -149,6 +149,7 @@ updateRFIDStatus();
     </form>
   {% else %}
     {{ song.title if 'title' in song else 'Ukjent' }}
+    {% if song.type == 'playlist' %}<span title="Spilleliste" style="margin-left: 0.4em; font-size: 0.85em; color: #666;">📁 Liste</span>{% endif %}
     <a href="/?edit={{ sid }}">✏️</a>
   {% endif %}
 </td>
