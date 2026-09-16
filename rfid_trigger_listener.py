@@ -1,7 +1,7 @@
 # rfid_trigger_listener.py
 import time
 import os
-from utils import load_songs, append_log, play_song, play_playlist, find_song_by_rfid, skip_to_next_track, is_parental_locked
+from utils import load_songs, append_log, play_song, play_playlist, find_song_by_rfid, skip_to_next_track, is_parental_locked, speak_tilkoblingsinfo
 
 SONGS_FILE = "/home/magic/programmer/RFIDMusicBox/songs.json"
 STORAGE_DIR = "/home/magic/programmer/RFIDMusicBox/mp3"
@@ -34,7 +34,9 @@ def set_last_processed(rfid_code, scan_time):
 def play_for_rfid(data, rfid_code):
     song = find_song_by_rfid(data, rfid_code)
     if song:
-        if song.get("type") == "playlist" and "playlist_dir" in song:
+        if song.get("type") == "special" and song.get("action") == "tilkoblingsinfo":
+            speak_tilkoblingsinfo()
+        elif song.get("type") == "playlist" and "playlist_dir" in song:
             folder = os.path.join(STORAGE_DIR, song["playlist_dir"])
             append_log(f"▶ Spiller spilleliste: {song.get('title', folder)}")
             play_playlist(folder, title=song.get("title"))
@@ -51,7 +53,13 @@ def play_for_rfid(data, rfid_code):
         append_log(f"🚫 Ingen sang knyttet til RFID: {rfid_code}")
 
 def handle_scan(data, rfid_code, is_repeat_of_active):
-    if is_parental_locked():
+    song = find_song_by_rfid(data, rfid_code)
+    is_tilkoblingsinfo = song and song.get("type") == "special" and song.get("action") == "tilkoblingsinfo"
+
+    # Tilkoblingsinfo-kortet er en diagnose-/admin-handling, ikke musikk - det
+    # skal fungere selv om foreldrekontrollen er aktiv (man må jo kunne finne
+    # veien til panelet for å låse opp igjen).
+    if is_parental_locked() and not is_tilkoblingsinfo:
         append_log("🔒 Skanning ignorert - foreldrekontroll er aktiv")
         return
 
@@ -59,7 +67,6 @@ def handle_scan(data, rfid_code, is_repeat_of_active):
     # (etter debounce-vinduet), vil man normalt høre sangen fra start igjen -
     # men for en spilleliste er det mer nyttig å hoppe til neste spor i
     # stedet for å starte helt på nytt hver gang.
-    song = find_song_by_rfid(data, rfid_code)
     if is_repeat_of_active and song and song.get("type") == "playlist":
         append_log(f"⏭ Samme kort skannet igjen på spilleliste - hopper til neste spor")
         skip_to_next_track()

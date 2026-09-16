@@ -24,7 +24,9 @@ from utils import (
     set_parental_lock,
     list_audio_devices_with_friendly_names as list_audio_devices,
     get_current_default_sink,  # ← riktig funksjon her
-    get_current_volume
+    get_current_volume,
+    get_connected_ssid,
+    speak_tilkoblingsinfo
 )
 
 #13:11
@@ -33,6 +35,7 @@ app = Flask(__name__)
 STORAGE_DIR = "/home/magic/programmer/RFIDMusicBox/mp3"
 SONGS_FILE = "/home/magic/programmer/RFIDMusicBox/songs.json"
 REPO_DIR = "/home/magic/programmer/RFIDMusicBox"
+TILKOBLINGSINFO_KEY = "tilkoblingsinfo"
 
 def get_git_version():
     try:
@@ -122,6 +125,7 @@ def index():
         playlist_playing=is_playlist_playing(),
         now_playing=get_now_playing(),
         lock_remaining_seconds=get_parental_lock_remaining(),
+        tilkoblingsinfo_rfid=songs.get(TILKOBLINGSINFO_KEY, {}).get("rfid"),
         version=get_git_version()
     )
 
@@ -155,6 +159,8 @@ def status():
         elif match.get("type") == "playlist" and "playlist_dir" in match:
             folder_path = os.path.join(STORAGE_DIR, match["playlist_dir"])
             valid = os.path.exists(folder_path) and any(f.endswith(".mp3") for f in os.listdir(folder_path))
+        elif match.get("type") == "special":
+            valid = True
     return jsonify({
         "rfid": rfid,
         "status": "ready" if valid else "missing",
@@ -207,20 +213,6 @@ def clear_log_route():
     clear_log()
     append_log("🧹 Aktivitetsloggen ble tømt")
     return redirect("/")
-
-def get_connected_ssid():
-    try:
-        result = subprocess.run(
-            ["nmcli", "-t", "-f", "active,ssid", "dev", "wifi"],
-            capture_output=True, text=True, timeout=5
-        )
-        for line in result.stdout.splitlines():
-            active, ssid = line.split(":", 1)
-            if active == "yes":
-                return ssid
-    except Exception as e:
-        append_log(f"❌ Feil ved henting av tilkoblet SSID: {e}")
-    return None
 
 def scan_wifi_networks():
     networks = []
@@ -575,6 +567,39 @@ def unlink_rfid():
         del songs[song_id]["rfid"]
         append_log(f"🚫 Fjernet RFID fra {songs[song_id].get('title', song_id)}")
         save_songs(songs)
+    return redirect("/")
+
+@app.route("/link_tilkoblingsinfo_rfid", methods=["POST"])
+def link_tilkoblingsinfo_rfid():
+    songs = load_songs()
+    rfid = songs.get("last_read_rfid")
+
+    if not rfid:
+        append_log("⚠️ Ingen RFID skannet ennå.")
+        return redirect("/")
+
+    songs[TILKOBLINGSINFO_KEY] = {
+        "type": "special",
+        "action": "tilkoblingsinfo",
+        "rfid": rfid,
+        "title": "Tilkoblingsinfo",
+    }
+    append_log(f"🔗 Knyttet RFID {rfid} til tilkoblingsinfo-kortet")
+    save_songs(songs)
+    return redirect("/")
+
+@app.route("/unlink_tilkoblingsinfo_rfid", methods=["POST"])
+def unlink_tilkoblingsinfo_rfid():
+    songs = load_songs()
+    if TILKOBLINGSINFO_KEY in songs:
+        del songs[TILKOBLINGSINFO_KEY]
+        append_log("🚫 Fjernet tilkoblingsinfo-kortet")
+        save_songs(songs)
+    return redirect("/")
+
+@app.route("/test_tilkoblingsinfo", methods=["POST"])
+def test_tilkoblingsinfo():
+    speak_tilkoblingsinfo()
     return redirect("/")
 
 def resume_stuck_downloads():

@@ -212,6 +212,28 @@ updateRFIDStatus();
   </form>
 </div>
 
+<div style="background: #eaf1fc; border: 1px solid #a9c6f5; border-radius: 8px; padding: 1em 1.2em; margin-top: 1.2em; max-width: 500px;">
+  <p style="margin-top:0;"><strong>📶 Tilkoblingsinfo-kort</strong></p>
+  <p style="margin-bottom: 0.8em;">
+    {% if tilkoblingsinfo_rfid %}Koblet til kort: <strong>{{ tilkoblingsinfo_rfid }}</strong>{% else %}Ikke koblet til noe kort ennå{% endif %}
+  </p>
+  <p style="margin-bottom: 0.8em; font-size: 0.9em; color: #555;">
+    Skann et kort du vil bruke som "hjelp meg koble til"-kort, og trykk knappen under. Skannes kortet senere,
+    leser boksen høyt opp WiFi-navn, IP-adresse og adresse til panelet - nyttig når man ikke har skjerm.
+  </p>
+  <form action="/link_tilkoblingsinfo_rfid" method="post" style="display:inline; margin: 0;">
+    <button class="btn btn-default" type="submit">🔗 Bruk sist skannede kort</button>
+  </form>
+  <form action="/test_tilkoblingsinfo" method="post" style="display:inline; margin: 0; margin-left: 0.4em;">
+    <button class="btn btn-default" type="submit">🔊 Test</button>
+  </form>
+  {% if tilkoblingsinfo_rfid %}
+  <form action="/unlink_tilkoblingsinfo_rfid" method="post" style="display:inline; margin: 0; margin-left: 0.4em;">
+    <button class="btn btn-default" type="submit">🚫 Fjern kobling</button>
+  </form>
+  {% endif %}
+</div>
+
 <table>
     <thead>
         <tr>
@@ -223,7 +245,7 @@ updateRFIDStatus();
         </tr>
     </thead>
     <tbody>
-    {% for sid, song in songs.items() if song is mapping %}
+    {% for sid, song in songs.items() if song is mapping and song.get('type') != 'special' %}
         <tr>
             <td>
   {% if request.args.get('edit') == sid %}

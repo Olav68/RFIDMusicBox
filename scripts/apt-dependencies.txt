@@ -13,6 +13,10 @@ unzip
 python3-pip
 python3-gpiozero
 
+# Offline tale-syntese (for tilkoblingsinfo-kortet) - må virke uten internett,
+# så en frittstående apt-pakke i stedet for en sky-basert tjeneste.
+espeak-ng
+
 # Bluetooth (for /bluetooth-siden i panelet)
 bluez
 libspa-0.2-bluetooth

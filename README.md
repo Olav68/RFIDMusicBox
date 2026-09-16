@@ -13,6 +13,7 @@ Et Raspberry Pi-basert musikksystem for barn, som spiller av sanger når man ska
 - 🪪 Koble eller fjern RFID-koder enkelt
 - 🔘 Fysiske GPIO-knapper for volum opp/ned, stopp og spill av igjen
 - 📶 Koble til WiFi fra panelet, med automatisk oppsetts-hotspot hvis Pi-en mangler nett
+- 🗣️ Eget "tilkoblingsinfo"-kort som leser høyt opp WiFi-navn, IP-adresse og panel-adresse (virker offline)
 - 🔄 Hent oppdatert kode fra git manuelt fra panelet, eller automatisk ved oppstart
 - 📜 Logger aktivitet og systemstatus
 
@@ -21,7 +22,7 @@ Et Raspberry Pi-basert musikksystem for barn, som spiller av sanger når man ska
 - Raspberry Pi (anbefalt Pi 3 eller nyere — se maskinvarelisten under for konkret anbefaling)
 - Python 3.10+
 - RFID-leser (USB-emulerende tastatur, f.eks. 13.56 MHz USB)
-- `mpv`, `yt-dlp`, `ffmpeg`, PulseAudio (`pactl`) og BlueZ (`bluetoothctl`) installert på systemet
+- `mpv`, `yt-dlp`, `ffmpeg`, PulseAudio (`pactl`), BlueZ (`bluetoothctl`) og `espeak-ng` (offline tale) installert på systemet
 - NetworkManager (`nmcli`) må styre WiFi-grensesnittet — standard på Raspberry Pi OS Bookworm; på eldre
   utgaver må det installeres og `dhcpcd` sin kontroll over `wlan0` deaktiveres
 - Høyttaler (Bluetooth, jack eller innebygd via I2S — se under)

@@ -41,6 +41,38 @@ def get_current_default_sink():
         append_log(f"❌ Klarte ikke hente aktiv lydenhet: {e}")
         return None
 
+def get_connected_ssid():
+    try:
+        result = subprocess.run(
+            ["nmcli", "-t", "-f", "active,ssid", "dev", "wifi"],
+            capture_output=True, text=True, timeout=5
+        )
+        for line in result.stdout.splitlines():
+            active, ssid = line.split(":", 1)
+            if active == "yes":
+                return ssid
+    except Exception as e:
+        append_log(f"❌ Feil ved henting av tilkoblet SSID: {e}")
+    return None
+
+def get_wifi_ip_address(interface="wlan0"):
+    # Brukes i stedet for socket.gethostbyname(socket.gethostname()), som på
+    # Linux fort kan returnere 127.0.1.1 (fra /etc/hosts) i stedet for den
+    # ekte IP-en på wlan0 - både i vanlig WiFi-modus og i hotspot-modus
+    # (der NetworkManager selv setter wlan0 til 10.42.0.1).
+    try:
+        result = subprocess.run(
+            ["nmcli", "-t", "-f", "IP4.ADDRESS", "device", "show", interface],
+            capture_output=True, text=True, timeout=5
+        )
+        for line in result.stdout.splitlines():
+            if line.startswith("IP4.ADDRESS"):
+                _, _, value = line.partition(":")
+                return value.split("/")[0].strip() or None
+    except Exception as e:
+        append_log(f"❌ Feil ved henting av IP-adresse: {e}")
+    return None
+
 def get_current_volume(default=80):
     try:
         result = subprocess.run(["amixer", "get", "Master"], capture_output=True, text=True)
@@ -241,6 +273,48 @@ def play_song(filepath, title=None):
         return
 
     _start_mpv([filepath], title or filepath)
+
+WEBPANEL_PORT = 5000
+_TILKOBLINGSINFO_VOLUME = 80
+_TILKOBLINGSINFO_WAV = "/tmp/.rfidmusicbox_tilkoblingsinfo.wav"
+_TTS_VOICE = "nb"  # espeak-ng: norsk bokmål - må virke offline (AP-modus har ikke internett)
+
+def _synthesize_speech(text, output_path, voice=_TTS_VOICE):
+    try:
+        subprocess.run(
+            ["espeak-ng", "-v", voice, "-s", "150", "-w", output_path, text],
+            check=True, capture_output=True, timeout=30
+        )
+        return True
+    except Exception as e:
+        append_log(f"❌ Klarte ikke generere tale: {e}")
+        return False
+
+def build_tilkoblingsinfo_text():
+    # Importeres her (ikke øverst i filen) for å unngå en importsløyfe -
+    # wifi_watchdog.py importerer selv fra utils.py.
+    from wifi_watchdog import is_hotspot_active, HOTSPOT_SSID
+
+    hostname = socket.gethostname()
+    friendly_name = f"{hostname}.local"
+    ip_address = get_wifi_ip_address() or "ukjent IP-adresse"
+    wifi_name = HOTSPOT_SSID if is_hotspot_active() else (get_connected_ssid() or "ukjent nettverk")
+
+    return (
+        "Hei, velkommen til Bestefars magiske boks. Kontrollpanelet venter på deg. "
+        f"Koble deg til WiFi {wifi_name}, og gå til IP adresse {ip_address} kolon {WEBPANEL_PORT} "
+        f"i nettleseren din. Eller skriv {friendly_name} i adressefeltet i nettleseren din."
+    )
+
+def speak_tilkoblingsinfo():
+    text = build_tilkoblingsinfo_text()
+    append_log(f"🗣 Leser opp tilkoblingsinfo: {text}")
+
+    if not _synthesize_speech(text, _TILKOBLINGSINFO_WAV):
+        return
+
+    subprocess.run(["amixer", "sset", "Master", f"{_TILKOBLINGSINFO_VOLUME}%"])
+    play_song(_TILKOBLINGSINFO_WAV, title="Tilkoblingsinfo")
 
 def find_song_by_rfid(data, rfid_code):
     for key, val in data.items():
