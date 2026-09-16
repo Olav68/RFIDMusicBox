@@ -222,17 +222,19 @@ updateRFIDStatus();
       Skann et kort du vil bruke som "hjelp meg koble til"-kort, og trykk knappen under. Skannes kortet senere,
       leser boksen høyt opp WiFi-navn, IP-adresse og adresse til panelet - nyttig når man ikke har skjerm.
     </p>
-    <form action="/link_tilkoblingsinfo_rfid" method="post" style="display:inline; margin: 0;">
-      <button class="btn btn-default" type="submit">🔗 Bruk sist skannede kort</button>
-    </form>
-    <form action="/test_tilkoblingsinfo" method="post" style="display:inline; margin: 0; margin-left: 0.4em;">
-      <button class="btn btn-default" type="submit">🔊 Test</button>
-    </form>
-    {% if tilkoblingsinfo_rfid %}
-    <form action="/unlink_tilkoblingsinfo_rfid" method="post" style="display:inline; margin: 0; margin-left: 0.4em;">
-      <button class="btn btn-default" type="submit">🚫 Fjern kobling</button>
-    </form>
-    {% endif %}
+    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 0.4em;">
+      <form action="/link_tilkoblingsinfo_rfid" method="post" style="margin: 0;">
+        <button class="btn btn-default" type="submit">🔗 Bruk sist skannede kort</button>
+      </form>
+      <form action="/test_tilkoblingsinfo" method="post" style="margin: 0;">
+        <button class="btn btn-default" type="submit">🔊 Test</button>
+      </form>
+      {% if tilkoblingsinfo_rfid %}
+      <form action="/unlink_tilkoblingsinfo_rfid" method="post" style="margin: 0; margin-left: auto;">
+        <button class="btn btn-default" type="submit">🚫 Fjern kobling</button>
+      </form>
+      {% endif %}
+    </div>
   </div>
 </div>
 
