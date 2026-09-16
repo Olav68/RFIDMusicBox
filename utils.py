@@ -320,8 +320,8 @@ def build_tilkoblingsinfo_text():
     wifi_name = HOTSPOT_SSID if is_hotspot_active() else (get_connected_ssid() or "the box's network")
 
     return (
-        f"To connect, join WiFi network {wifi_name}. Then, in your browser, go to {friendly_name}, "
-        f"or please enter {ip_spoken}, colon, {port_spoken}."
+        f"To connect, join WiFi network {wifi_name}. Open your browser and go to address {friendly_name}, "
+        f"or please enter the ip address {ip_spoken}, colon, {port_spoken}."
     )
 
 def speak_tilkoblingsinfo():
