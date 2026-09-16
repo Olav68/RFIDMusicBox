@@ -194,44 +194,46 @@ updateRFIDStatus();
            style="width: 60%; vertical-align: middle;">
 </form>
 
-<div style="background: #fff6e0; border: 1px solid #e6d38a; border-radius: 8px; padding: 1em 1.2em; margin-top: 1.2em; max-width: 500px;">
-  <p style="margin-top:0;"><strong>🔒 Foreldrekontroll</strong></p>
-  <p id="lock-status" style="margin-bottom: 0.8em;">
-    {% if lock_remaining_seconds > 0 %}Låst i <strong><span id="lock-remaining"></span></strong> til{% else %}Ikke låst{% endif %}
-  </p>
-  <form action="/set_parental_lock" method="post" style="margin: 0;">
-    <label for="lock-hours">Lås RFID-avspilling i: <span id="lock-hours-value">Av</span></label><br>
-    <input type="range" id="lock-hours" name="hours" min="0" max="3" step="0.5" value="0"
-           oninput="document.getElementById('lock-hours-value').innerText = formatHoursLabel(this.value)"
-           style="width: 60%; vertical-align: middle;">
-    <button class="btn btn-default" type="submit" style="margin-left: 0.4em;">🔒 Sett lås</button>
-  </form>
-  <form id="unlock-now-form" action="/set_parental_lock" method="post" style="margin-top: 0.6em;"{% if lock_remaining_seconds <= 0 %} hidden{% endif %}>
-    <input type="hidden" name="hours" value="0">
-    <button class="btn btn-default" type="submit">🔓 Lås opp nå</button>
-  </form>
-</div>
+<div style="display: flex; gap: 1.2em; flex-wrap: wrap; margin-top: 1.2em;">
+  <div style="background: #fff6e0; border: 1px solid #e6d38a; border-radius: 8px; padding: 1em 1.2em; max-width: 500px; flex: 1 1 320px;">
+    <p style="margin-top:0;"><strong>🔒 Foreldrekontroll</strong></p>
+    <p id="lock-status" style="margin-bottom: 0.8em;">
+      {% if lock_remaining_seconds > 0 %}Låst i <strong><span id="lock-remaining"></span></strong> til{% else %}Ikke låst{% endif %}
+    </p>
+    <form action="/set_parental_lock" method="post" style="margin: 0;">
+      <label for="lock-hours">Lås RFID-avspilling i: <span id="lock-hours-value">Av</span></label><br>
+      <input type="range" id="lock-hours" name="hours" min="0" max="3" step="0.5" value="0"
+             oninput="document.getElementById('lock-hours-value').innerText = formatHoursLabel(this.value)"
+             style="width: 60%; vertical-align: middle;">
+      <button class="btn btn-default" type="submit" style="margin-left: 0.4em;">🔒 Sett lås</button>
+    </form>
+    <form id="unlock-now-form" action="/set_parental_lock" method="post" style="margin-top: 0.6em;"{% if lock_remaining_seconds <= 0 %} hidden{% endif %}>
+      <input type="hidden" name="hours" value="0">
+      <button class="btn btn-default" type="submit">🔓 Lås opp nå</button>
+    </form>
+  </div>
 
-<div style="background: #eaf1fc; border: 1px solid #a9c6f5; border-radius: 8px; padding: 1em 1.2em; margin-top: 1.2em; max-width: 500px;">
-  <p style="margin-top:0;"><strong>📶 Tilkoblingsinfo-kort</strong></p>
-  <p style="margin-bottom: 0.8em;">
-    {% if tilkoblingsinfo_rfid %}Koblet til kort: <strong>{{ tilkoblingsinfo_rfid }}</strong>{% else %}Ikke koblet til noe kort ennå{% endif %}
-  </p>
-  <p style="margin-bottom: 0.8em; font-size: 0.9em; color: #555;">
-    Skann et kort du vil bruke som "hjelp meg koble til"-kort, og trykk knappen under. Skannes kortet senere,
-    leser boksen høyt opp WiFi-navn, IP-adresse og adresse til panelet - nyttig når man ikke har skjerm.
-  </p>
-  <form action="/link_tilkoblingsinfo_rfid" method="post" style="display:inline; margin: 0;">
-    <button class="btn btn-default" type="submit">🔗 Bruk sist skannede kort</button>
-  </form>
-  <form action="/test_tilkoblingsinfo" method="post" style="display:inline; margin: 0; margin-left: 0.4em;">
-    <button class="btn btn-default" type="submit">🔊 Test</button>
-  </form>
-  {% if tilkoblingsinfo_rfid %}
-  <form action="/unlink_tilkoblingsinfo_rfid" method="post" style="display:inline; margin: 0; margin-left: 0.4em;">
-    <button class="btn btn-default" type="submit">🚫 Fjern kobling</button>
-  </form>
-  {% endif %}
+  <div style="background: #fff6e0; border: 1px solid #e6d38a; border-radius: 8px; padding: 1em 1.2em; max-width: 500px; flex: 1 1 320px;">
+    <p style="margin-top:0;"><strong>📶 Tilkoblingsinfo-kort</strong></p>
+    <p style="margin-bottom: 0.8em;">
+      {% if tilkoblingsinfo_rfid %}Koblet til kort: <strong>{{ tilkoblingsinfo_rfid }}</strong>{% else %}Ikke koblet til noe kort ennå{% endif %}
+    </p>
+    <p style="margin-bottom: 0.8em; font-size: 0.9em; color: #555;">
+      Skann et kort du vil bruke som "hjelp meg koble til"-kort, og trykk knappen under. Skannes kortet senere,
+      leser boksen høyt opp WiFi-navn, IP-adresse og adresse til panelet - nyttig når man ikke har skjerm.
+    </p>
+    <form action="/link_tilkoblingsinfo_rfid" method="post" style="display:inline; margin: 0;">
+      <button class="btn btn-default" type="submit">🔗 Bruk sist skannede kort</button>
+    </form>
+    <form action="/test_tilkoblingsinfo" method="post" style="display:inline; margin: 0; margin-left: 0.4em;">
+      <button class="btn btn-default" type="submit">🔊 Test</button>
+    </form>
+    {% if tilkoblingsinfo_rfid %}
+    <form action="/unlink_tilkoblingsinfo_rfid" method="post" style="display:inline; margin: 0; margin-left: 0.4em;">
+      <button class="btn btn-default" type="submit">🚫 Fjern kobling</button>
+    </form>
+    {% endif %}
+  </div>
 </div>
 
 <table>
