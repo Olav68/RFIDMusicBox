@@ -277,18 +277,33 @@ def play_song(filepath, title=None):
 WEBPANEL_PORT = 5000
 _TILKOBLINGSINFO_VOLUME = 80
 _TILKOBLINGSINFO_WAV = "/tmp/.rfidmusicbox_tilkoblingsinfo.wav"
-_TTS_VOICE = "nb"  # espeak-ng: norsk bokmål - må virke offline (AP-modus har ikke internett)
+# Engelsk i stedet for norsk - espeak-ng sin engelske stemme uttaler tall og
+# IP-adresser mer forståelig enn den norske. Må virke offline (AP-modus har
+# ikke internett), så et offline-motor som espeak-ng er et krav, ikke bare et valg.
+_TTS_VOICE = "en-us"
+_TTS_SPEED = 130  # ord/min - saktere enn standard (175) for at tallene skal være til å forstå
 
-def _synthesize_speech(text, output_path, voice=_TTS_VOICE):
+def _synthesize_speech(text, output_path, voice=_TTS_VOICE, speed=_TTS_SPEED):
     try:
         subprocess.run(
-            ["espeak-ng", "-v", voice, "-s", "150", "-w", output_path, text],
+            ["espeak-ng", "-v", voice, "-s", str(speed), "-w", output_path, text],
             check=True, capture_output=True, timeout=30
         )
         return True
     except Exception as e:
         append_log(f"❌ Klarte ikke generere tale: {e}")
         return False
+
+_DIGIT_WORDS = {"0": "zero", "1": "one", "2": "two", "3": "three", "4": "four",
+                "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine"}
+
+def _spell_out_digits(digits):
+    # Tallordet "hundre og nittito" for "192" er lett å høre feil av - hvert
+    # siffer lest for seg (som et telefonnummer) er langt vanskeligere å bomme på.
+    return " ".join(_DIGIT_WORDS.get(ch, ch) for ch in digits)
+
+def _spell_out_ip_address(ip):
+    return " dot ".join(_spell_out_digits(octet) for octet in ip.split("."))
 
 def build_tilkoblingsinfo_text():
     # Importeres her (ikke øverst i filen) for å unngå en importsløyfe -
@@ -297,13 +312,14 @@ def build_tilkoblingsinfo_text():
 
     hostname = socket.gethostname()
     friendly_name = f"{hostname}.local"
-    ip_address = get_wifi_ip_address() or "ukjent IP-adresse"
-    wifi_name = HOTSPOT_SSID if is_hotspot_active() else (get_connected_ssid() or "ukjent nettverk")
+    ip_address = get_wifi_ip_address()
+    ip_spoken = _spell_out_ip_address(ip_address) if ip_address else "an unknown address"
+    port_spoken = _spell_out_digits(str(WEBPANEL_PORT))
+    wifi_name = HOTSPOT_SSID if is_hotspot_active() else (get_connected_ssid() or "the box's network")
 
     return (
-        "Hei, velkommen til Bestefars magiske boks. Kontrollpanelet venter på deg. "
-        f"Koble deg til WiFi {wifi_name}, og gå til IP adresse {ip_address} kolon {WEBPANEL_PORT} "
-        f"i nettleseren din. Eller skriv {friendly_name} i adressefeltet i nettleseren din."
+        f"To connect, join WiFi network {wifi_name}. Then, in your browser, go to {friendly_name}, "
+        f"or please enter {ip_spoken}, colon, {port_spoken}."
     )
 
 def speak_tilkoblingsinfo():
