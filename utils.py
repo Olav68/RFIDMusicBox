@@ -280,8 +280,8 @@ _TILKOBLINGSINFO_WAV = "/tmp/.rfidmusicbox_tilkoblingsinfo.wav"
 # Engelsk i stedet for norsk - espeak-ng sin engelske stemme uttaler tall og
 # IP-adresser mer forståelig enn den norske. Må virke offline (AP-modus har
 # ikke internett), så et offline-motor som espeak-ng er et krav, ikke bare et valg.
-_TTS_VOICE = "en-us"
-_TTS_SPEED = 130  # ord/min - saktere enn standard (175) for at tallene skal være til å forstå
+_TTS_VOICE = "en-us+f3"  # "+f3" = kvinnelig variant av espeak-ng sin engelske stemme
+_TTS_SPEED = 115  # ord/min - saktere enn standard (175) for at tallene skal være til å forstå
 
 def _synthesize_speech(text, output_path, voice=_TTS_VOICE, speed=_TTS_SPEED):
     try:
