@@ -303,7 +303,9 @@ def _spell_out_digits(digits):
     return " ".join(_DIGIT_WORDS.get(ch, ch) for ch in digits)
 
 def _spell_out_ip_address(ip):
-    return " dot ".join(_spell_out_digits(octet) for octet in ip.split("."))
+    # Komma før og etter "dot" gir espeak-ng en liten pause der, slik at
+    # skillet mellom oktettene blir tydelig i stedet for å flyte sammen.
+    return ", dot, ".join(_spell_out_digits(octet) for octet in ip.split("."))
 
 def build_tilkoblingsinfo_text():
     # Importeres her (ikke øverst i filen) for å unngå en importsløyfe -
