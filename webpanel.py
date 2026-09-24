@@ -454,6 +454,25 @@ def add_url():
     subprocess.Popen(["python3", __file__, "--download", song_id])
     return redirect("/")
 
+@app.route("/add_mp3", methods=["POST"])
+def add_mp3():
+    upload = request.files.get("file")
+    if not upload or not upload.filename.lower().endswith(".mp3"):
+        append_log("❌ Ingen gyldig MP3-fil valgt")
+        return redirect("/")
+
+    song_id = str(int(datetime.now().timestamp() * 1000))
+    filename = f"song_{song_id}.mp3"
+    upload.save(os.path.join(STORAGE_DIR, filename))
+
+    title = os.path.splitext(os.path.basename(upload.filename))[0]
+    songs = load_songs()
+    songs[song_id] = {"url": "", "status": "ready", "type": "song", "filename": filename, "title": title}
+    save_songs(songs)
+
+    append_log(f"🎵 Lastet opp MP3: {title}")
+    return redirect("/")
+
 @app.route("/play", methods=["POST"])
 def play_song_route():
     song_id = request.form["song_id"]

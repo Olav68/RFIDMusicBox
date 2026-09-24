@@ -135,6 +135,11 @@ updateRFIDStatus();
     <label for="url">Lim inn YouTube URL (Sjekk om URL inneholder ordet "list" dersom det er en spilleliste):</label><br>
     <input type="text" id="url" name="url" required style="width: 60%; height: 2.08em; box-sizing: border-box; padding: 0 0.6em; border: 1px solid #bbb; border-radius: 8px; font: inherit;">
       <button class="btn btn-default" type="submit">💾 Legg til ny sang</button>
+      <button class="btn btn-default" type="button" onclick="document.getElementById('mp3-file').click()">📁 Legg til MP3</button>
+</form>
+<form id="mp3-form" action="/add_mp3" method="post" enctype="multipart/form-data" style="display: none;">
+    <input type="file" id="mp3-file" name="file" accept=".mp3,audio/mpeg"
+           onchange="if (this.files.length) this.form.submit();">
 </form>
 
 <div style="display: flex; gap: 0.6em; flex-wrap: wrap; margin-top: 1em;">
@@ -265,7 +270,7 @@ updateRFIDStatus();
     <a href="/?edit={{ sid }}">✏️</a>
   {% endif %}
 </td>
-            <td><a href="{{ song.url }}" target="_blank">Link</a></td>
+            <td>{% if song.url %}<a href="{{ song.url }}" target="_blank">Link</a>{% else %}<span style="color: #666;">📁 Lokal fil</span>{% endif %}</td>
             <td class="{{ song.status }}">
                 {{ '✅ Klar' if song.status == 'ready' else '⏳ Henter' if song.status == 'downloading' else '❌ Feil' }}
             </td>
